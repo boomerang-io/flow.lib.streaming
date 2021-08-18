@@ -35,13 +35,14 @@ class ConsumerManager {
     // @formatter:off
     ConsumerConfiguration consumerConfiguration = ConsumerConfiguration.builder()
         .durable(properties.getConsumerName())
+        .deliverSubject(properties.getConsumerDeliveryTarget())
         .deliverPolicy(properties.getConsumerDeliverPolicy())
-        .filterSubject(properties.getConsumerFilterSubject())
         .ackPolicy(properties.getConsumerAcknowledgmentPolicy())
         .ackWait(properties.getConsumerAcknowledgmentTimeout())
+        .replayPolicy(properties.getConsumerReplayPolicy())
+        .filterSubject(properties.getConsumerFilterSubject())
         .maxAckPending(properties.getConsumerMaxAcknowledgmentMessagesPending())
         .maxDeliver(properties.getConsumerMaxDeliverRetry())
-        .replayPolicy(properties.getConsumerReplayPolicy())
         .build();
     // @formatter:on
 

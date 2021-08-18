@@ -74,11 +74,11 @@ class Properties {
   @Value("${eventing.jetstream.consumer.name}")
   private String consumerName;
 
+  @Value("${eventing.jetstream.consumer.delivery-target}")
+  private String consumerDeliveryTarget;
+
   @Value("${eventing.jetstream.consumer.deliver-policy:All}")
   private DeliverPolicy consumerDeliverPolicy;
-
-  @Value("${eventing.jetstream.consumer.filter-subject:#{null}}")
-  private String consumerFilterSubject;
 
   @Value("${eventing.jetstream.consumer.acknowledgment-policy:Explicit}")
   private AckPolicy consumerAcknowledgmentPolicy;
@@ -86,15 +86,15 @@ class Properties {
   @Value("${eventing.jetstream.consumer.acknowledgment-timeout:30s}")
   private Duration consumerAcknowledgmentTimeout;
 
+  @Value("${eventing.jetstream.consumer.replay-policy:Instant}")
+  private ReplayPolicy consumerReplayPolicy;
+
+  @Value("${eventing.jetstream.consumer.filter-subject:#{null}}")
+  private String consumerFilterSubject;
+
   @Value("${eventing.jetstream.consumer.max-acknowledgment-messages-pending:0}")
   private Long consumerMaxAcknowledgmentMessagesPending;
 
   @Value("${eventing.jetstream.consumer.max-deliver-retry:-1}")
   private Long consumerMaxDeliverRetry;
-
-  @Value("${eventing.jetstream.consumer.replay-policy:Instant}")
-  private ReplayPolicy consumerReplayPolicy;
-
-  // @Value("${eventing.jetstream.consumer.new-messages-heartbeat:5s}")
-  // private Duration consumerNewMessagesHeartbeat;
 }
