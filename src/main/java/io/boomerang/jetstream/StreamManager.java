@@ -19,7 +19,7 @@ class StreamManager {
   Properties properties;
 
   /**
-   * This helper method created and returns a new Jetstream stream.
+   * This helper method creates and returns a new Jetstream stream.
    * 
    * @category Helper method.
    * @throws JetStreamApiException
@@ -32,18 +32,18 @@ class StreamManager {
     // @formatter:off
     StreamConfiguration streamConfiguration = StreamConfiguration.builder()
         .name(properties.getStreamName())
-        .storageType(properties.getStorageType())
-        .subjects(properties.getSubjects())
-        .replicas(properties.getReplicas())
-        .maxAge(properties.getMessageMaxAge())
-        .maxBytes(properties.getMaxBytes())
-        .maxMessages(properties.getMaxMessages())
-        .maxMsgSize(properties.getMaxMessageSize())
-        .maxConsumers(properties.getMaxConsumers())
-        .noAck(properties.getNoAcknowledgment())
-        .retentionPolicy(properties.getRetentionPolicy())
-        .discardPolicy(properties.getDiscardPolicy())
-        .duplicateWindow(properties.getDuplicateWindow())
+        .storageType(properties.getStreamStorageType())
+        .subjects(properties.getStreamSubjects())
+        .replicas(properties.getStreamReplicas())
+        .maxAge(properties.getStreamMessageMaxAge())
+        .maxBytes(properties.getStreamMaxBytes())
+        .maxMessages(properties.getStreamMaxMessages())
+        .maxMsgSize(properties.getStreamMaxMessageSize())
+        .maxConsumers(properties.getStreamMaxConsumers())
+        .noAck(properties.getStreamNoAcknowledgment())
+        .retentionPolicy(properties.getStreamRetentionPolicy())
+        .discardPolicy(properties.getStreamDiscardPolicy())
+        .duplicateWindow(properties.getStreamDuplicateWindow())
         .build();
     // @formatter:on
 
