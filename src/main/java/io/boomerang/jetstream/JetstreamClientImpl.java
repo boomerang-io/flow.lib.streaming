@@ -4,7 +4,6 @@ import java.nio.charset.StandardCharsets;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.codec.EncodingException;
 import org.springframework.stereotype.Component;
 import io.nats.client.Connection;
 import io.nats.client.Dispatcher;
@@ -72,19 +71,15 @@ class JetstreamClientImpl implements JetstreamClient {
 
       // Create our message handler
       MessageHandler handler = (message) -> {
-
-        if (message.isUtf8mode()) {
-          String data = new String(message.getData());
-          listener.newMessageReceived(data);
-        } else {
-          throw new EncodingException("Message is not an UTF-8 encoded string!:" + message);
-        }
+        String data = new String(message.getData());
+        listener.newMessageReceived(message.getSubject(), data);
+        message.ack();
       };
 
       JetStreamSubscription subscription =
-          natsConnection.jetStream().subscribe(subject, dispatcher, handler, true, options);
+          natsConnection.jetStream().subscribe(subject, dispatcher, handler, false, options);
 
-      logger.debug("Successfully subscriber to NATS Jetstream consumer! " + subscription);
+      logger.debug("Successfully subscribed to NATS Jetstream consumer! " + subscription);
 
       return true;
     } catch (Exception e) {
