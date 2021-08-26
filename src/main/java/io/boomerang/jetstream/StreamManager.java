@@ -22,6 +22,7 @@ class StreamManager {
    * This helper method creates and returns a new Jetstream stream.
    * 
    * @category Helper method.
+   * @param jetStreamManagement Jetstream management context to be used when creating a new stream.
    * @throws JetStreamApiException
    * @throws IOException
    * @return A new {@link io.nats.client.api.StreamInfo StreamInfo} object.
@@ -52,6 +53,15 @@ class StreamManager {
     return jetStreamManagement.addStream(streamConfiguration);
   }
 
+  /**
+   * This helper method returns information about a Jetstream stream.
+   * 
+   * @category Helper method.
+   * @param jetStreamManagement Jetstream management context to be used when looking up for stream.
+   * @throws JetStreamApiException
+   * @throws IOException
+   * @return Stream information. See {@link io.nats.client.api.StreamInfo StreamInfo}.
+   */
   StreamInfo getStreamInfo(JetStreamManagement jetStreamManagement)
       throws IOException, JetStreamApiException {
 
@@ -67,6 +77,13 @@ class StreamManager {
     }
   }
 
+  /**
+   * This helper method returns {@code true} if a stream exists. {@code false} otherwise.
+   * 
+   * @category Helper method.
+   * @param jetStreamManagement Jetstream management context to be used when looking up for stream.
+   * @return {@link java.lang.Boolean Boolean}.
+   */
   boolean streamExists(JetStreamManagement jetStreamManagement) {
     try {
       return getStreamInfo(jetStreamManagement) != null;

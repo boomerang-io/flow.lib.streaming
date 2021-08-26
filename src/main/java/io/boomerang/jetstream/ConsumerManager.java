@@ -25,26 +25,54 @@ class ConsumerManager {
    * This helper method creates and returns a new Jetstream consumer.
    * 
    * @category Helper method.
+   * @param jetStreamManagement Jetstream management context to be used when creating a new
+   *        consumer.
+   * @param consumerType The type of consumer to be created. See
+   *        {@link io.boomerang.jetstream.ConsumerType ConsumerType}.
    * @throws JetStreamApiException
    * @throws IOException
    * @return A new {@link io.nats.client.api.ConsumerInfo ConsumerInfo} object.
    */
-  ConsumerInfo createNewConsumer(JetStreamManagement jetStreamManagement)
+  ConsumerInfo createNewConsumer(JetStreamManagement jetStreamManagement, ConsumerType consumerType)
       throws IOException, JetStreamApiException {
 
-    // @formatter:off
-    ConsumerConfiguration consumerConfiguration = ConsumerConfiguration.builder()
-        .durable(properties.getConsumerName())
-        .deliverSubject(properties.getConsumerDeliveryTarget())
-        .deliverPolicy(properties.getConsumerDeliverPolicy())
-        .ackPolicy(properties.getConsumerAcknowledgmentPolicy())
-        .ackWait(properties.getConsumerAcknowledgmentTimeout())
-        .replayPolicy(properties.getConsumerReplayPolicy())
-        .filterSubject(properties.getConsumerFilterSubject())
-        .maxAckPending(properties.getConsumerMaxAcknowledgmentMessagesPending())
-        .maxDeliver(properties.getConsumerMaxDeliverRetry())
-        .build();
-    // @formatter:on
+    // Create the configuration for consumer first
+    ConsumerConfiguration consumerConfiguration = null;
+
+    switch (consumerType) {
+      case PushBased:
+
+        // @formatter:off
+        consumerConfiguration = ConsumerConfiguration.builder()
+            .durable(properties.getConsumerPushName())
+            .ackPolicy(properties.getConsumerPushAcknowledgmentPolicy())
+            .ackWait(properties.getConsumerPushAcknowledgmentWait())
+            .deliverPolicy(properties.getConsumerPushDeliverPolicy())
+            .deliverSubject(properties.getConsumerPushDeliverySubject())
+            .filterSubject(properties.getConsumerPushFilterSubject())
+            .maxAckPending(properties.getConsumerPushMaxAcknowledgmentsPending())
+            .maxDeliver(properties.getConsumerPushMaxDeliverRetry())
+            .replayPolicy(properties.getConsumerPushReplayPolicy())
+            .build();
+        // @formatter:on
+        break;
+
+      case PullBased:
+
+        // @formatter:off
+        consumerConfiguration = ConsumerConfiguration.builder()
+            .durable(properties.getConsumerPullName())
+            .ackPolicy(properties.getConsumerPullAcknowledgmentPolicy())
+            .ackWait(properties.getConsumerPullAcknowledgmentWait())
+            .deliverPolicy(properties.getConsumerPullDeliverPolicy())
+            .filterSubject(properties.getConsumerPullFilterSubject())
+            .maxAckPending(properties.getConsumerPullMaxAcknowledgmentsPending())
+            .maxDeliver(properties.getConsumerPullMaxDeliverRetry())
+            .replayPolicy(properties.getConsumerPullReplayPolicy())
+            .build();
+        // @formatter:on
+        break;
+    }
 
     // Create the Jetstream stream if this doesn't exist
     if (!streamManager.streamExists(jetStreamManagement)) {
@@ -52,19 +80,33 @@ class ConsumerManager {
     }
 
     // Create Jetstream consumer
-    logger.debug(
-        "Initializing a new Jetstream consumer with configuration: " + consumerConfiguration);
+    logger.debug("Initializing a new Jetstream consumer of type \"" + consumerType
+        + "\" with configuration: " + consumerConfiguration);
 
     return jetStreamManagement.addOrUpdateConsumer(properties.getStreamName(),
         consumerConfiguration);
   }
 
-  ConsumerInfo getConsumerInfo(JetStreamManagement jetStreamManagement)
+  /**
+   * This helper method returns information about a Jetstream consumer.
+   * 
+   * @category Helper method.
+   * @param jetStreamManagement Jetstream management context to be used when looking up for
+   *        consumer.
+   * @param consumerType The type of consumer to get information about. See
+   *        {@link io.boomerang.jetstream.ConsumerType ConsumerType}.
+   * @throws JetStreamApiException
+   * @throws IOException
+   * @return Consumer information. See {@link io.nats.client.api.ConsumerInfo ConsumerInfo}.
+   */
+  ConsumerInfo getConsumerInfo(JetStreamManagement jetStreamManagement, ConsumerType consumerType)
       throws IOException, JetStreamApiException {
 
+    String consumerName = (consumerType == ConsumerType.PushBased ? properties.getConsumerPushName()
+        : properties.getConsumerPullName());
+
     try {
-      return jetStreamManagement.getConsumerInfo(properties.getStreamName(),
-          properties.getConsumerName());
+      return jetStreamManagement.getConsumerInfo(properties.getStreamName(), consumerName);
     } catch (JetStreamApiException e) {
 
       if (e.getErrorCode() == 404) {
@@ -75,9 +117,20 @@ class ConsumerManager {
     }
   }
 
-  Boolean consumerExists(JetStreamManagement jetStreamManagement) {
+  /**
+   * This helper method returns {@code true} if a consumer of requested type exists. {@code false}
+   * otherwise.
+   * 
+   * @category Helper method.
+   * @param jetStreamManagement Jetstream management context to be used when looking up for
+   *        consumer.
+   * @param consumerType The type of consumer. See {@link io.boomerang.jetstream.ConsumerType
+   *        ConsumerType}.
+   * @return {@link java.lang.Boolean Boolean}.
+   */
+  Boolean consumerExists(JetStreamManagement jetStreamManagement, ConsumerType consumerType) {
     try {
-      return getConsumerInfo(jetStreamManagement) != null;
+      return getConsumerInfo(jetStreamManagement, consumerType) != null;
     } catch (Exception e) {
       logger.error("An error occurred while retrieving Jetstream consumer information!", e);
       return false;
