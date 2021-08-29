@@ -19,7 +19,7 @@ class Properties {
   @Value("${eventing.jetstream.server.url}")
   private String jetstreamUrl;
 
-  @Value("${eventing.jetstream.server.reconnect-wait-time:10s}")
+  @Value("#{T(java.time.Duration).parse('${eventing.jetstream.server.reconnect-wait-time:PT10S}')}")
   private Duration serverReconnectWaitTime;
 
   @Value("${eventing.jetstream.server.reconnect-max-attempts:-1}")
@@ -39,7 +39,7 @@ class Properties {
   @Value("${eventing.jetstream.stream.replicas:1}")
   private Integer streamReplicas;
 
-  @Value("${eventing.jetstream.stream.message-max-age:30d}")
+  @Value("#{T(java.time.Duration).parse('${eventing.jetstream.stream.message-max-age:P30D}')}")
   private Duration streamMessageMaxAge;
 
   @Value("${eventing.jetstream.stream.max-bytes:-1}")
@@ -63,7 +63,7 @@ class Properties {
   @Value("${eventing.jetstream.stream.discard-policy:Old}")
   private DiscardPolicy streamDiscardPolicy;
 
-  @Value("${eventing.jetstream.stream.duplicate-window:0ms}")
+  @Value("#{T(java.time.Duration).parse('${eventing.jetstream.stream.duplicate-window:PT0.0S}')}")
   private Duration streamDuplicateWindow;
 
   // NATS Jetstream push-based consumer properties
@@ -74,7 +74,7 @@ class Properties {
   @Value("${eventing.jetstream.consumer.push.acknowledgment-policy:None}")
   private AckPolicy consumerPushAcknowledgmentPolicy;
 
-  @Value("${eventing.jetstream.consumer.push.acknowledgment-wait:30s}")
+  @Value("#{T(java.time.Duration).parse('${eventing.jetstream.consumer.push.acknowledgment-wait:PT30S}')}")
   private Duration consumerPushAcknowledgmentWait;
 
   @Value("${eventing.jetstream.consumer.push.deliver-policy:All}")
@@ -103,7 +103,7 @@ class Properties {
   @Value("${eventing.jetstream.consumer.pull.acknowledgment-policy:Explicit}")
   private AckPolicy consumerPullAcknowledgmentPolicy;
 
-  @Value("${eventing.jetstream.consumer.pull.acknowledgment-wait:30s}")
+  @Value("#{T(java.time.Duration).parse('${eventing.jetstream.consumer.pull.acknowledgment-wait:PT30S}')}")
   private Duration consumerPullAcknowledgmentWait;
 
   @Value("${eventing.jetstream.consumer.pull.deliver-policy:All}")
@@ -124,7 +124,7 @@ class Properties {
   @Value("${eventing.jetstream.consumer.pull.batch-size:10}")
   private Integer consumerPullBatchSize;
 
-  @Value("${eventing.jetstream.consumer.pull.batch-first-message-wait:30s}")
+  @Value("#{T(java.time.Duration).parse('${eventing.jetstream.consumer.pull.batch-first-message-wait:PT30S}')}")
   private Duration consumerPullBatchFirstMessageWait;
 
   // Property getters (auto-generated)
