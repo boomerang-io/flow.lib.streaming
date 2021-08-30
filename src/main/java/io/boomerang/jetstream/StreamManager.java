@@ -34,7 +34,7 @@ class StreamManager {
     StreamConfiguration streamConfiguration = StreamConfiguration.builder()
         .name(properties.getStreamName())
         .storageType(properties.getStreamStorageType())
-        .subjects(properties.getStreamSubjects())
+        .subjects(properties.getStreamSubject())
         .replicas(properties.getStreamReplicas())
         .maxAge(properties.getStreamMessageMaxAge())
         .maxBytes(properties.getStreamMaxBytes())

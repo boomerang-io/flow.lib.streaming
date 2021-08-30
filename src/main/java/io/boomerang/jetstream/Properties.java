@@ -1,7 +1,6 @@
 package io.boomerang.jetstream;
 
 import java.time.Duration;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import io.nats.client.api.AckPolicy;
@@ -33,8 +32,8 @@ class Properties {
   @Value("${eventing.jetstream.stream.storage-type:Memory}")
   private StorageType streamStorageType;
 
-  @Value("#{\"${eventing.jetstream.stream.subjects}\".split(\",\")}")
-  private List<String> streamSubjects;
+  @Value("${eventing.jetstream.stream.subject}")
+  private String streamSubject;
 
   @Value("${eventing.jetstream.stream.replicas:1}")
   private Integer streamReplicas;
@@ -149,8 +148,8 @@ class Properties {
     return this.streamStorageType;
   }
 
-  public List<String> getStreamSubjects() {
-    return this.streamSubjects;
+  public String getStreamSubject() {
+    return this.streamSubject;
   }
 
   public Integer getStreamReplicas() {
