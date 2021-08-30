@@ -74,7 +74,7 @@ class Properties {
   @Value("${eventing.jetstream.consumer.push.acknowledgment-policy:None}")
   private AckPolicy consumerPushAcknowledgmentPolicy;
 
-  @Value("#{T(java.time.Duration).parse('${eventing.jetstream.consumer.push.acknowledgment-wait:PT30S}')}")
+  @Value("#{T(java.time.Duration).parse('${eventing.jetstream.consumer.push.acknowledgment-wait:PT1M}')}")
   private Duration consumerPushAcknowledgmentWait;
 
   @Value("${eventing.jetstream.consumer.push.deliver-policy:All}")
@@ -103,7 +103,7 @@ class Properties {
   @Value("${eventing.jetstream.consumer.pull.acknowledgment-policy:Explicit}")
   private AckPolicy consumerPullAcknowledgmentPolicy;
 
-  @Value("#{T(java.time.Duration).parse('${eventing.jetstream.consumer.pull.acknowledgment-wait:PT30S}')}")
+  @Value("#{T(java.time.Duration).parse('${eventing.jetstream.consumer.pull.acknowledgment-wait:PT1M}')}")
   private Duration consumerPullAcknowledgmentWait;
 
   @Value("${eventing.jetstream.consumer.pull.deliver-policy:All}")
