@@ -5,7 +5,7 @@
 
 	<groupId>io.boomerang</groupId>
 	<artifactId>lib-jetstream</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.2</version>
 	<name>lib-jetstream</name>
 	<url>https://www.useboomerang.io</url>
 
