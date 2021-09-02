@@ -1,5 +1,6 @@
 package io.boomerang.jetstream;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import io.nats.client.Connection;
 import io.nats.client.Dispatcher;
+import io.nats.client.JetStreamApiException;
 import io.nats.client.JetStreamSubscription;
 import io.nats.client.Message;
 import io.nats.client.MessageHandler;
@@ -30,7 +32,7 @@ class JetstreamClientImpl implements JetstreamClient {
   private Properties properties;
 
   @Autowired
-  private Connection natsConnection;
+  private NatsDurableConnection natsDurableConnection;
 
   @Autowired
   private StreamManager streamManager;
@@ -44,6 +46,9 @@ class JetstreamClientImpl implements JetstreamClient {
   public Boolean publish(String subject, String message) {
 
     try {
+      // Get NATS connection
+      Connection natsConnection = natsDurableConnection.getOptional().orElseThrow();
+
       // Create the Jetstream stream if this doesn't exist
       if (!streamManager.streamExists(natsConnection.jetStreamManagement())) {
         streamManager.createNewStream(natsConnection.jetStreamManagement());
@@ -63,7 +68,12 @@ class JetstreamClientImpl implements JetstreamClient {
       logger.debug("Message published! " + publishAck);
       return true;
 
-    } catch (Exception e) {
+    } catch (NoSuchElementException e) {
+
+      logger.error("No connection to the NATS server!", e);
+      return false;
+
+    } catch (IOException | JetStreamApiException e) {
 
       logger.error("An error occurred while publishing the message to NATS Jetstream stream!", e);
       return false;
@@ -123,6 +133,9 @@ class JetstreamClientImpl implements JetstreamClient {
       JetstreamMessageListener listener) {
 
     try {
+      // Get NATS connection
+      Connection natsConnection = natsDurableConnection.getOptional().orElseThrow();
+
       // Get push-based consumer first
       ConsumerInfo consumerInfo = consumerManager
           .getConsumerInfo(natsConnection.jetStreamManagement(), ConsumerType.PushBased);
@@ -151,7 +164,12 @@ class JetstreamClientImpl implements JetstreamClient {
       logger.debug("Successfully subscribed to NATS Jetstream consumer! " + subscription);
       return Optional.of(subscription);
 
-    } catch (Exception e) {
+    } catch (NoSuchElementException e) {
+
+      logger.error("No connection to the NATS server!", e);
+      return Optional.empty();
+
+    } catch (IOException | JetStreamApiException e) {
 
       logger.error("An error occurred while subscribing to NATS Jetstream consumer!", e);
       return Optional.empty();
@@ -162,6 +180,9 @@ class JetstreamClientImpl implements JetstreamClient {
       JetstreamMessageListener listener) {
 
     try {
+      // Get NATS connection
+      Connection natsConnection = natsDurableConnection.getOptional().orElseThrow();
+
       // Get pull-based consumer first
       ConsumerInfo consumerInfo = consumerManager
           .getConsumerInfo(natsConnection.jetStreamManagement(), ConsumerType.PullBased);
@@ -215,7 +236,12 @@ class JetstreamClientImpl implements JetstreamClient {
       logger.debug("Successfully subscribed to NATS Jetstream consumer! " + subscription);
       return Optional.of(subscription);
 
-    } catch (Exception e) {
+    } catch (NoSuchElementException e) {
+
+      logger.error("No connection to the NATS server!", e);
+      return Optional.empty();
+
+    } catch (IOException | JetStreamApiException e) {
 
       logger.error("An error occurred while subscribing to NATS Jetstream consumer!", e);
       return Optional.empty();
