@@ -1,6 +1,5 @@
 package io.boomerang.jetstream;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,10 +8,10 @@ import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import io.nats.client.Connection;
 import io.nats.client.Dispatcher;
-import io.nats.client.JetStreamApiException;
 import io.nats.client.JetStreamSubscription;
 import io.nats.client.Message;
 import io.nats.client.MessageHandler;
@@ -32,6 +31,7 @@ class JetstreamClientImpl implements JetstreamClient {
   private Properties properties;
 
   @Autowired
+  @Lazy
   private NatsDurableConnection natsDurableConnection;
 
   @Autowired
@@ -73,7 +73,7 @@ class JetstreamClientImpl implements JetstreamClient {
       logger.error("No connection to the NATS server!", e);
       return false;
 
-    } catch (IOException | JetStreamApiException e) {
+    } catch (Exception e) {
 
       logger.error("An error occurred while publishing the message to NATS Jetstream stream!", e);
       return false;
@@ -169,7 +169,7 @@ class JetstreamClientImpl implements JetstreamClient {
       logger.error("No connection to the NATS server!", e);
       return Optional.empty();
 
-    } catch (IOException | JetStreamApiException e) {
+    } catch (Exception e) {
 
       logger.error("An error occurred while subscribing to NATS Jetstream consumer!", e);
       return Optional.empty();
@@ -241,7 +241,7 @@ class JetstreamClientImpl implements JetstreamClient {
       logger.error("No connection to the NATS server!", e);
       return Optional.empty();
 
-    } catch (IOException | JetStreamApiException e) {
+    } catch (Exception e) {
 
       logger.error("An error occurred while subscribing to NATS Jetstream consumer!", e);
       return Optional.empty();
