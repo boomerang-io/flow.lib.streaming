@@ -70,7 +70,7 @@ class JetstreamClientImpl implements JetstreamClient {
 
     } catch (NoSuchElementException e) {
 
-      logger.error("No connection to the NATS server!", e);
+      logger.error("No connection to NATS server!", e);
       return false;
 
     } catch (Exception e) {
@@ -166,7 +166,7 @@ class JetstreamClientImpl implements JetstreamClient {
 
     } catch (NoSuchElementException e) {
 
-      logger.error("No connection to the NATS server!", e);
+      logger.error("No connection to NATS server!", e);
       return Optional.empty();
 
     } catch (Exception e) {
@@ -238,7 +238,7 @@ class JetstreamClientImpl implements JetstreamClient {
 
     } catch (NoSuchElementException e) {
 
-      logger.error("No connection to the NATS server!", e);
+      logger.error("No connection to NATS server!", e);
       return Optional.empty();
 
     } catch (Exception e) {
