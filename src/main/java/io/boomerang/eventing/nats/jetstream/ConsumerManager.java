@@ -25,21 +25,17 @@ class ConsumerManager {
    * @param consumerConfiguration {@link io.nats.client.api.ConsumerConfiguration
    *                              ConsumerConfiguration} for creating the new
    *                              Consumer.
-   * @param consumerType          The type of consumer to be created. See
-   *                              {@link io.boomerang.eventing.nats.jetstream.ConsumerType
-   *                              ConsumerType}.
    * @throws JetStreamApiException
    * @throws IOException
    * @return A new {@link io.nats.client.api.ConsumerInfo ConsumerInfo} object.
    */
   static ConsumerInfo createNewConsumer(Connection connection, StreamInfo streamInfo,
-      ConsumerConfiguration consumerConfiguration, ConsumerType consumerType)
-      throws IOException, JetStreamApiException {
+      ConsumerConfiguration consumerConfiguration) throws IOException, JetStreamApiException {
 
-    // Create Jetstream consumer
-    logger.debug("Initializing a new Jetstream consumer of type \"" + consumerType + "\" with configuration: "
-        + consumerConfiguration);
+    logger.debug("Initializing a new Jetstream consumer of type \"" + getConsumerType(consumerConfiguration)
+        + "\" with configuration: " + consumerConfiguration);
 
+    // Create and return Jetstream consumer
     return connection.jetStreamManagement().addOrUpdateConsumer(streamInfo.getConfiguration().getName(),
         consumerConfiguration);
   }
@@ -62,6 +58,30 @@ class ConsumerManager {
    */
   static ConsumerInfo getConsumerInfo(Connection connection, StreamInfo streamInfo,
       ConsumerConfiguration consumerConfiguration) throws IOException, JetStreamApiException {
+    return getConsumerInfo(connection, streamInfo, consumerConfiguration, false);
+  }
+
+  /**
+   * This helper method returns information about a Jetstream consumer if this
+   * exists or has been created, {@code null} otherwise.
+   * 
+   * @param connection            NATS server {@link io.nats.client.Connection
+   *                              Connection} object.
+   * @param streamInfo            {@link io.nats.client.api.StreamInfo StreamInfo}
+   *                              object referencing an existing Jetstream stream.
+   * @param consumerConfiguration {@link io.nats.client.api.ConsumerConfiguration
+   *                              ConsumerConfiguration} for creating the new
+   *                              Consumer.
+   * @param createIfMissing       Set to {@code true} to try to create a new
+   *                              Consumer if this can't be found on the NATS
+   *                              server.
+   * @throws JetStreamApiException
+   * @throws IOException
+   * @return Consumer information. See {@link io.nats.client.api.ConsumerInfo
+   *         ConsumerInfo}.
+   */
+  static ConsumerInfo getConsumerInfo(Connection connection, StreamInfo streamInfo,
+      ConsumerConfiguration consumerConfiguration, Boolean createIfMissing) throws IOException, JetStreamApiException {
 
     try {
       return connection.jetStreamManagement().getConsumerInfo(streamInfo.getConfiguration().getName(),
@@ -69,7 +89,7 @@ class ConsumerManager {
     } catch (JetStreamApiException e) {
 
       if (e.getErrorCode() == 404) {
-        return null;
+        return createIfMissing ? createNewConsumer(connection, streamInfo, consumerConfiguration) : null;
       } else {
         throw e;
       }
@@ -96,6 +116,23 @@ class ConsumerManager {
     } catch (Exception e) {
       logger.error("An error occurred while retrieving Jetstream consumer information!", e);
       return false;
+    }
+  }
+
+  /**
+   * This helper method returns the Consumer type based on provided
+   * {@link io.nats.client.api.ConsumerConfiguration ConsumerConfiguration}.
+   *
+   * @param consumerConfiguration {@link io.nats.client.api.ConsumerConfiguration
+   *                              ConsumerConfiguration} to retrieve
+   *                              {@link ConsumerType ConsumerType}
+   * @return A {@link ConsumerType ConsumerType} object.
+   */
+  static ConsumerType getConsumerType(ConsumerConfiguration consumerConfiguration) {
+    if (consumerConfiguration.getDeliverSubject().isBlank()) {
+      return ConsumerType.PushBased;
+    } else {
+      return ConsumerType.PullBased;
     }
   }
 }

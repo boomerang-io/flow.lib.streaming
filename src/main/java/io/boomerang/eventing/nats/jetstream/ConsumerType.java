@@ -1,5 +1,5 @@
 package io.boomerang.eventing.nats.jetstream;
 
-public enum ConsumerType {
+enum ConsumerType {
   PushBased, PullBased;
 }

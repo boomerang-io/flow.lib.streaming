@@ -6,13 +6,9 @@ public class TinCanConfiguration {
 
   private final Boolean automaticallyCreateConsumer;
 
-  private final ConsumerType consumerType;
-
-  public TinCanConfiguration(Boolean automaticallyCreateStream, Boolean automaticallyCreateConsumer,
-      ConsumerType consumerType) {
+  public TinCanConfiguration(Boolean automaticallyCreateStream, Boolean automaticallyCreateConsumer) {
     this.automaticallyCreateStream = automaticallyCreateStream;
     this.automaticallyCreateConsumer = automaticallyCreateConsumer;
-    this.consumerType = consumerType;
   }
 
   public Boolean getAutomaticallyCreateStream() {
@@ -31,17 +27,12 @@ public class TinCanConfiguration {
     return this.automaticallyCreateConsumer;
   }
 
-  public ConsumerType getConsumerType() {
-    return this.consumerType;
-  }
-
   @Override
   public String toString() {
     // @formatter:off
     return "{" +
       " automaticallyCreateStream='" + isAutomaticallyCreateStream() + "'" +
       ", automaticallyCreateConsumer='" + isAutomaticallyCreateConsumer() + "'" +
-      ", consumerType='" + getConsumerType() + "'" +
       "}";
     // @formatter:on
   }
@@ -56,8 +47,6 @@ public class TinCanConfiguration {
 
     private Boolean automaticallyCreateConsumer = true;
 
-    private ConsumerType consumerType = ConsumerType.PushBased;
-
     public Builder() {
     }
 
@@ -71,18 +60,12 @@ public class TinCanConfiguration {
       return this;
     }
 
-    public Builder consumerType(ConsumerType consumerType) {
-      this.consumerType = consumerType;
-      return this;
-    }
-
     public TinCanConfiguration build() {
 
       // @formatter:off
       return new TinCanConfiguration(
           automaticallyCreateStream,
-          automaticallyCreateConsumer,
-          consumerType
+          automaticallyCreateConsumer
       );
       // @formatter:on
     }

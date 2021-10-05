@@ -2,7 +2,9 @@ package io.boomerang.eventing.nats.jetstream;
 
 import java.io.IOException;
 import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,6 +36,8 @@ public class TinCanCommunication implements ConnectionPrimerListener {
   private final TinCanConfiguration tinCanConfiguration;
 
   private Reference<TinCanMessageListener> messageListenerRef;
+
+  private AtomicBoolean listenerSubscribed = new AtomicBoolean(false);
 
   public TinCanCommunication(ConnectionPrimer connectionPrimer, StreamConfiguration streamConfiguration,
       ConsumerConfiguration consumerConfiguration) {
@@ -67,17 +71,12 @@ public class TinCanCommunication implements ConnectionPrimerListener {
     }
 
     // Get Jetstream stream from the NATS server
-    StreamInfo streamInfo = StreamManager.getStreamInfo(connection, streamConfiguration);
+    StreamInfo streamInfo = StreamManager.getStreamInfo(connection, streamConfiguration,
+        tinCanConfiguration.isAutomaticallyCreateStream());
 
     if (streamInfo == null) {
-
-      // Create the stream automatically?
-      if (tinCanConfiguration.isAutomaticallyCreateStream()) {
-        streamInfo = StreamManager.createNewStream(connection, streamConfiguration);
-      } else {
-        throw new StreamNotFoundException("Jetstream could not be found! Consider enabling "
-            + "`automaticallyCreateStream` in `TinCanConfiguration`");
-      }
+      throw new StreamNotFoundException(
+          "Jetstream could not be found! Consider enabling " + "`automaticallyCreateStream` in `TinCanConfiguration`");
     }
 
     // Create the NATS message
@@ -93,6 +92,25 @@ public class TinCanCommunication implements ConnectionPrimerListener {
 
     logger.debug("Message published to the stream! " + publishAck);
   }
+
+  /* public void subscribe(TinCanMessageListener listener) {
+
+    // Assign the listener first
+    this.messageListenerRef = new WeakReference<>(listener);
+    this.listenerSubscribed.set(true);
+
+    // Get NATS connection
+    Connection connection = connectionPrimer.getConnection();
+
+    if (connection == null) {
+
+      // If there is no connection, mark listener not being subscribed and subscribe once the connection is restored
+      this.listenerSubscribed.set(false);
+
+      logger.warn("No NATS server connection! Subscribe to listener when connection is restored.");
+      return
+    }
+  } */
 
   @Override
   public void connectionUpdated(ConnectionPrimer connectionPrimer) {

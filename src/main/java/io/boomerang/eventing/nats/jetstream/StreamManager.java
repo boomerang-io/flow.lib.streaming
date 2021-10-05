@@ -48,13 +48,33 @@ class StreamManager {
    */
   static StreamInfo getStreamInfo(Connection connection, StreamConfiguration streamConfiguration)
       throws IOException, JetStreamApiException {
+    return getStreamInfo(connection, streamConfiguration, false);
+  }
+
+  /**
+   * This helper method returns information about a Jetstream stream if this
+   * exists or has been created, {@code null} otherwise.
+   * 
+   * @param connection          NATS server {@link io.nats.client.Connection
+   *                            Connection} object.
+   * @param streamConfiguration {@link io.nats.client.api.StreamConfiguration
+   *                            StreamConfiguration} for Stream lookup.
+   * @param createIfMissing     Set to {@code true} to try to create a new Stream
+   *                            if this can't be found on the NATS server.
+   * @throws JetStreamApiException
+   * @throws IOException
+   * @return Stream information. See {@link io.nats.client.api.StreamInfo
+   *         StreamInfo}.
+   */
+  static StreamInfo getStreamInfo(Connection connection, StreamConfiguration streamConfiguration,
+      Boolean createIfMissing) throws IOException, JetStreamApiException {
 
     try {
       return connection.jetStreamManagement().getStreamInfo(streamConfiguration.getName());
     } catch (JetStreamApiException e) {
 
       if (e.getErrorCode() == 404) {
-        return null;
+        return createIfMissing ? createNewStream(connection, streamConfiguration) : null;
       } else {
         throw e;
       }
