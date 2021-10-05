@@ -172,7 +172,7 @@ public class ConnectionPrimer implements ConnectionListener, ErrorListener, Auto
     // Find the index of the provided listener
     // @formatter:off
     return IntStream.range(0, listeners.size())
-        .filter(i -> listeners.get(i).refersTo(listener))
+        .filter(i -> listeners.get(i).get().equals(listener))
         .findFirst()
         .orElse(-1);
     // @formatter:on
