@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.util.Strings;
 
 import io.nats.client.Connection;
 import io.nats.client.JetStreamApiException;
@@ -129,10 +130,10 @@ class ConsumerManager {
    * @return A {@link ConsumerType ConsumerType} object.
    */
   static ConsumerType getConsumerType(ConsumerConfiguration consumerConfiguration) {
-    if (consumerConfiguration.getDeliverSubject().isBlank()) {
-      return ConsumerType.PushBased;
-    } else {
+    if (Strings.isBlank(consumerConfiguration.getDeliverSubject())) {
       return ConsumerType.PullBased;
+    } else {
+      return ConsumerType.PushBased;
     }
   }
 }
