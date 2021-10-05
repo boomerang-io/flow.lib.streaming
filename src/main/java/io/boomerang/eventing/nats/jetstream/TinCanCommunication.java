@@ -173,16 +173,16 @@ public class TinCanCommunication implements ConnectionPrimerListener {
 
         // Notify message listener
         messageListenerRef.get().newMessageReceived(message.getSubject(), new String(message.getData()));
+        message.ack();
 
       } else {
 
         // This should not happen!!!
-        throw new NullPointerException(
-            "No message listener assigned to this Tin Can communication channel! Message will be lost!");
+        logger.error("No message listener assigned to this Tin Can communication channel! Message not acknowledge!");
       }
     };
     // Subscribe to receive messages on subject and return this subscription
-    JetStreamSubscription subscription = connection.jetStream().subscribe(">", dispatcher, handler, true, options);
+    JetStreamSubscription subscription = connection.jetStream().subscribe(">", dispatcher, handler, false, options);
 
     logger.debug("Successfully subscribed to NATS Jetstream consumer! " + subscription);
   }
@@ -210,12 +210,13 @@ public class TinCanCommunication implements ConnectionPrimerListener {
 
                     // Notify message listener
                     messageListenerRef.get().newMessageReceived(message.getSubject(), new String(message.getData()));
+                    message.ack();
 
                   } else {
 
                     // This should not happen!!!
-                    throw new NullPointerException(
-                        "No message listener assigned to this Tin Can communication channel! Message will be lost!");
+                    logger.error(
+                        "No message listener assigned to this Tin Can communication channel! Message not acknowledge!");
                   }
                 });
           } catch (IllegalStateException e) {
