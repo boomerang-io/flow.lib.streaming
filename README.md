@@ -1,4 +1,4 @@
-# Boomerang Flow Streaming Library <!-- omit in toc -->
+# Boomerang Eventing Library <!-- omit in toc -->
 
 ## Table of Contents
 
@@ -14,9 +14,9 @@
 
 ## Description
 
-Boomerang Flow Streaming Library is a Maven plugin that implements streaming technologies, currently supporting [NATS Jetstream][1] only. This plugin is meant to be integrated into [Spring Boot][2] enabled applications.
+Boomerang Eventing Library is a Maven plugin that implements event streaming technologies, currently supporting [NATS Jetstream][1] only. This plugin is meant to be integrated into [Spring Boot][2] enabled applications.
 
-The plugin has been built on top of [`jnats`][4] client library targeting an easier integration with NATS Jetstream for the purposes of Boomerang Flow.
+The plugin has been built on top of [`jnats`][4] client library targeting an easier integration with NATS Jetstream for the purposes of Boomerang platform.
 
 ## Dependencies
 
@@ -32,7 +32,7 @@ The plugin has been built on top of [`jnats`][4] client library targeting an eas
 
 ## Install
 
-Boomerang Flow Streaming plugin is published to [GitHub Packages][7]. To install the package from GitHub's Apache Maven registry, edit the `pom.xml` file to include the package as a dependency:
+Boomerang Eventing plugin is published to [GitHub Packages][7]. To install the package from GitHub's Apache Maven registry, edit the `pom.xml` file to include the package as a dependency:
 
 ```xml
 <dependency>
