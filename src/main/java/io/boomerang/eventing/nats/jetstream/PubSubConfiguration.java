@@ -7,12 +7,20 @@ package io.boomerang.eventing.nats.jetstream;
  * 
  * @since 0.2.0
  */
-public class PubSubConfiguration extends PubOnlyConfiguration {
+final public class PubSubConfiguration {
+
+  /**
+   * The NATS Jetstream {@code Stream} will be created automatically on the server
+   * if the value of {@link PubSubConfiguration#automaticallyCreateStream
+   * automaticallyCreateStream} is {@code true}.
+   * 
+   * @since 0.2.0
+   */
+  private final Boolean automaticallyCreateStream;
 
   /**
    * The NATS Jetstream {@code Consumer} will be created automatically on the
-   * server if the value of
-   * {@link PubOnlyConfiguration#automaticallyCreateConsumer
+   * server if the value of {@link PubSubConfiguration#automaticallyCreateConsumer
    * automaticallyCreateConsumer} is {@code true}.
    * 
    * @since 0.2.0
@@ -23,8 +31,22 @@ public class PubSubConfiguration extends PubOnlyConfiguration {
    * @since 0.2.0
    */
   public PubSubConfiguration(Boolean automaticallyCreateStream, Boolean automaticallyCreateConsumer) {
-    super(automaticallyCreateStream);
+    this.automaticallyCreateStream = automaticallyCreateStream;
     this.automaticallyCreateConsumer = automaticallyCreateConsumer;
+  }
+
+  /**
+   * @since 0.2.0
+   */
+  public Boolean getAutomaticallyCreateStream() {
+    return this.automaticallyCreateStream;
+  }
+
+  /**
+   * @since 0.2.0
+   */
+  public Boolean isAutomaticallyCreateStream() {
+    return this.automaticallyCreateStream;
   }
 
   /**
@@ -64,12 +86,22 @@ public class PubSubConfiguration extends PubOnlyConfiguration {
    * 
    * @since 0.2.0
    */
-  public static class Builder extends PubOnlyConfiguration.Builder {
+  public static class Builder {
+
+    /**
+     * The NATS Jetstream {@code Stream} will be created automatically on the server
+     * if the value of {@link PubSubConfiguration.Builder#automaticallyCreateStream
+     * automaticallyCreateStream} is {@code true}.
+     * 
+     * @node Default value is {@code true}.
+     * @since 0.2.0
+     */
+    private Boolean automaticallyCreateStream = true;
 
     /**
      * The NATS Jetstream {@code Consumer} will be created automatically on the
      * server if the value of
-     * {@link PubOnlyConfiguration.Builder#automaticallyCreateConsumer
+     * {@link PubSubConfiguration.Builder#automaticallyCreateConsumer
      * automaticallyCreateConsumer} is {@code true}.
      * 
      * @node Default value is {@code true}.
@@ -86,6 +118,14 @@ public class PubSubConfiguration extends PubOnlyConfiguration {
     /**
      * @since 0.2.0
      */
+    public Builder automaticallyCreateStream(Boolean automaticallyCreateStream) {
+      this.automaticallyCreateStream = automaticallyCreateStream;
+      return this;
+    }
+
+    /**
+     * @since 0.2.0
+     */
     public Builder automaticallyCreateConsumer(Boolean automaticallyCreateConsumer) {
       this.automaticallyCreateConsumer = automaticallyCreateConsumer;
       return this;
@@ -95,11 +135,9 @@ public class PubSubConfiguration extends PubOnlyConfiguration {
      * @since 0.2.0
      */
     public PubSubConfiguration build() {
-      PubOnlyConfiguration pubOnlyConfiguration = super.build();
-
       // @formatter:off
       return new PubSubConfiguration(
-        pubOnlyConfiguration.getAutomaticallyCreateStream(),
+          automaticallyCreateStream,
           automaticallyCreateConsumer
       );
       // @formatter:on

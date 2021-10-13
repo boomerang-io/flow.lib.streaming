@@ -91,7 +91,11 @@ public class PubSubTransceiver extends PubTransmitter implements PubSubTunnel, C
    */
   public PubSubTransceiver(ConnectionPrimer connectionPrimer, StreamConfiguration streamConfiguration,
       ConsumerConfiguration consumerConfiguration, PubSubConfiguration pubSubConfiguration) {
-    super(connectionPrimer, streamConfiguration, pubSubConfiguration);
+    // @formatter:off
+    super(connectionPrimer, streamConfiguration, new PubOnlyConfiguration.Builder()
+        .automaticallyCreateStream(pubSubConfiguration.isAutomaticallyCreateStream())
+        .build());
+    // @formatter:on
     this.consumerConfiguration = consumerConfiguration;
     this.pubSubConfiguration = pubSubConfiguration;
   }

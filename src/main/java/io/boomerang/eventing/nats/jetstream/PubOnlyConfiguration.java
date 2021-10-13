@@ -7,7 +7,7 @@ package io.boomerang.eventing.nats.jetstream;
  * 
  * @since 0.2.0
  */
-public class PubOnlyConfiguration {
+final public class PubOnlyConfiguration {
 
   /**
    * The NATS Jetstream {@code Stream} will be created automatically on the server
@@ -91,7 +91,6 @@ public class PubOnlyConfiguration {
      * @since 0.2.0
      */
     public PubOnlyConfiguration build() {
-
       // @formatter:off
       return new PubOnlyConfiguration(
           automaticallyCreateStream

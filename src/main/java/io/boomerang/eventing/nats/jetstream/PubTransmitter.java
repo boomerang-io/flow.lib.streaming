@@ -37,9 +37,9 @@ public class PubTransmitter implements PubOnlyTunnel {
 
   private static final Logger logger = LogManager.getLogger(PubTransmitter.class);
 
-  final ConnectionPrimer connectionPrimer;
+  protected final ConnectionPrimer connectionPrimer;
 
-  final StreamConfiguration streamConfiguration;
+  protected final StreamConfiguration streamConfiguration;
 
   private final PubOnlyConfiguration pubOnlyConfiguration;
 
