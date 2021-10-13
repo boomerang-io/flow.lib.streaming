@@ -32,10 +32,24 @@ public interface PubSubTunnel extends PubOnlyTunnel {
   public void unsubscribe();
 
   /**
-   * @return {@code true} is this communication tunnel is subscribed for receiving
+   * @return {@code true} if this communication tunnel is subscribed for receiving
    *         new messages from the NATS Jetstream {@code Consumer}, {@code false}
    *         otherwise.
    * @since 0.2.0
+   * @see also For additional details on active subscription, see
+   *      {@link #isSubscriptionActive()} property .
+   * @note If {@code true}, this doesn't mean necessarily that the subscription is
+   *       currently active, i. e. listening for new messages. It means that the
+   *       handler for subscription has been assigned and once active, the
+   *       {@link #isSubscriptionActive()} will be set to {@code true}.
    */
   public Boolean isSubscribed();
+
+  /**
+   * @return {@code true} if this communication tunnel is <b>subscribed and
+   *         listening</b> for new messages from the NATS Jetstream
+   *         {@code Consumer}, {@code false} otherwise.
+   * @since 0.2.0
+   */
+  public Boolean isSubscriptionActive();
 }
