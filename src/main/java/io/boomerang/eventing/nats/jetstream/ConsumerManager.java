@@ -12,6 +12,9 @@ import io.nats.client.api.ConsumerConfiguration;
 import io.nats.client.api.ConsumerInfo;
 import io.nats.client.api.StreamInfo;
 
+/**
+ * @since 0.1.0
+ */
 class ConsumerManager {
 
   private static final Logger logger = LogManager.getLogger(ConsumerManager.class);
@@ -26,9 +29,10 @@ class ConsumerManager {
    * @param consumerConfiguration {@link io.nats.client.api.ConsumerConfiguration
    *                              ConsumerConfiguration} for creating the new
    *                              Consumer.
+   * @return A new {@link io.nats.client.api.ConsumerInfo ConsumerInfo} object.
    * @throws JetStreamApiException
    * @throws IOException
-   * @return A new {@link io.nats.client.api.ConsumerInfo ConsumerInfo} object.
+   * @since 0.1.0
    */
   static ConsumerInfo createNewConsumer(Connection connection, StreamInfo streamInfo,
       ConsumerConfiguration consumerConfiguration) throws IOException, JetStreamApiException {
@@ -52,10 +56,11 @@ class ConsumerManager {
    * @param consumerConfiguration {@link io.nats.client.api.ConsumerConfiguration
    *                              ConsumerConfiguration} for creating the new
    *                              Consumer.
-   * @throws JetStreamApiException
-   * @throws IOException
    * @return Consumer information. See {@link io.nats.client.api.ConsumerInfo
    *         ConsumerInfo}.
+   * @throws JetStreamApiException
+   * @throws IOException
+   * @since 0.1.0
    */
   static ConsumerInfo getConsumerInfo(Connection connection, StreamInfo streamInfo,
       ConsumerConfiguration consumerConfiguration) throws IOException, JetStreamApiException {
@@ -76,10 +81,11 @@ class ConsumerManager {
    * @param createIfMissing       Set to {@code true} to try to create a new
    *                              Consumer if this can't be found on the NATS
    *                              server.
-   * @throws JetStreamApiException
-   * @throws IOException
    * @return Consumer information. See {@link io.nats.client.api.ConsumerInfo
    *         ConsumerInfo}.
+   * @throws JetStreamApiException
+   * @throws IOException
+   * @since 0.1.0
    */
   static ConsumerInfo getConsumerInfo(Connection connection, StreamInfo streamInfo,
       ConsumerConfiguration consumerConfiguration, Boolean createIfMissing) throws IOException, JetStreamApiException {
@@ -109,6 +115,7 @@ class ConsumerManager {
    *                              ConsumerConfiguration} for creating the new
    *                              Consumer.
    * @return {@link java.lang.Boolean Boolean}.
+   * @since 0.1.0
    */
   static Boolean consumerExists(Connection connection, StreamInfo streamInfo,
       ConsumerConfiguration consumerConfiguration) {
@@ -128,6 +135,7 @@ class ConsumerManager {
    *                              ConsumerConfiguration} to retrieve
    *                              {@link ConsumerType ConsumerType}
    * @return A {@link ConsumerType ConsumerType} object.
+   * @since 0.1.0
    */
   static ConsumerType getConsumerType(ConsumerConfiguration consumerConfiguration) {
     if (Strings.isBlank(consumerConfiguration.getDeliverSubject())) {

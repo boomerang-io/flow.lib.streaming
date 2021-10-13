@@ -10,6 +10,9 @@ import io.nats.client.JetStreamApiException;
 import io.nats.client.api.StreamConfiguration;
 import io.nats.client.api.StreamInfo;
 
+/**
+ * @since 0.1.0
+ */
 class StreamManager {
 
   private static final Logger logger = LogManager.getLogger(StreamManager.class);
@@ -21,9 +24,10 @@ class StreamManager {
    *                            Connection} object.
    * @param streamConfiguration {@link io.nats.client.api.StreamConfiguration
    *                            StreamConfiguration} for creating the new Stream.
+   * @return A new {@link io.nats.client.api.StreamInfo StreamInfo} object.
    * @throws JetStreamApiException
    * @throws IOException
-   * @return A new {@link io.nats.client.api.StreamInfo StreamInfo} object.
+   * @since 0.1.0
    */
   static StreamInfo createNewStream(Connection connection, StreamConfiguration streamConfiguration)
       throws IOException, JetStreamApiException {
@@ -41,10 +45,11 @@ class StreamManager {
    *                            Connection} object.
    * @param streamConfiguration {@link io.nats.client.api.StreamConfiguration
    *                            StreamConfiguration} for Stream lookup.
-   * @throws JetStreamApiException
-   * @throws IOException
    * @return Stream information. See {@link io.nats.client.api.StreamInfo
    *         StreamInfo}.
+   * @throws JetStreamApiException
+   * @throws IOException
+   * @since 0.1.0
    */
   static StreamInfo getStreamInfo(Connection connection, StreamConfiguration streamConfiguration)
       throws IOException, JetStreamApiException {
@@ -61,10 +66,11 @@ class StreamManager {
    *                            StreamConfiguration} for Stream lookup.
    * @param createIfMissing     Set to {@code true} to try to create a new Stream
    *                            if this can't be found on the NATS server.
-   * @throws JetStreamApiException
-   * @throws IOException
    * @return Stream information. See {@link io.nats.client.api.StreamInfo
    *         StreamInfo}.
+   * @throws JetStreamApiException
+   * @throws IOException
+   * @since 0.1.0
    */
   static StreamInfo getStreamInfo(Connection connection, StreamConfiguration streamConfiguration,
       Boolean createIfMissing) throws IOException, JetStreamApiException {
@@ -90,6 +96,7 @@ class StreamManager {
    * @param streamConfiguration {@link io.nats.client.api.StreamConfiguration
    *                            StreamConfiguration} for Stream lookup.
    * @return {@link java.lang.Boolean Boolean}.
+   * @since 0.1.0
    */
   static boolean streamExists(Connection connection, StreamConfiguration streamConfiguration) {
     try {

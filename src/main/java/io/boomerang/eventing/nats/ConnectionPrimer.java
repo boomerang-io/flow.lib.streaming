@@ -56,7 +56,7 @@ public class ConnectionPrimer implements ConnectionListener, ErrorListener, Auto
    * default connection options and a NATS server URL.
    * 
    * @param serverURL The URL string for the NATS server.
-   * 
+   * @since 0.1.0
    * @see {@link io.nats.client.Options Options} for default connection options
    *      for the NATS server.
    */
@@ -69,7 +69,7 @@ public class ConnectionPrimer implements ConnectionListener, ErrorListener, Auto
    * default connection options and a list of known NATS server URLs.
    * 
    * @param serverURLs A list of server URL strings for NATS servers.
-   * 
+   * @since 0.1.0
    * @see {@link io.nats.client.Options Options} for default connection options
    *      for the NATS server.
    */
@@ -83,7 +83,7 @@ public class ConnectionPrimer implements ConnectionListener, ErrorListener, Auto
    * Builder}.
    * 
    * @param optionsBuilder NATS server connection options builder.
-   * 
+   * @since 0.1.0
    * @note {@link io.nats.client.Options.Builder#connectionListener
    *       connectionListener} and
    *       {@link io.nats.client.Options.Builder#errorListener errorListener}
