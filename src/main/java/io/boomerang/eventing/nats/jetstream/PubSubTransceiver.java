@@ -60,7 +60,7 @@ public class PubSubTransceiver extends PubTransmitter implements PubSubTunnel, C
 
   private final PubSubConfiguration pubSubConfiguration;
 
-  private Reference<SubHandler> subHandlerRef;
+  private Reference<SubHandler> subHandlerRef = new WeakReference<>(null);
 
   private JetStreamSubscription jetstreamSubscription;
 
@@ -98,6 +98,7 @@ public class PubSubTransceiver extends PubTransmitter implements PubSubTunnel, C
     // @formatter:on
     this.consumerConfiguration = consumerConfiguration;
     this.pubSubConfiguration = pubSubConfiguration;
+    this.connectionPrimer.addListener(this);
   }
 
   @Override
@@ -110,22 +111,19 @@ public class PubSubTransceiver extends PubTransmitter implements PubSubTunnel, C
 
     // Assign the handler first
     subHandlerRef = new WeakReference<>(handler);
-    subscriptionActive.set(true);
 
-    // Get NATS connection
-    Connection connection = connectionPrimer.getConnection();
+    // Then get NATS connection
+    Connection connection = connectionPrimer.getActiveConnection();
 
     if (connection == null) {
 
-      // If there is no connection, mark subscription not being active and subscribe
-      // once the connection to NATS server is restored
-      subscriptionActive.set(false);
-
+      // If there is no connection, leave subscription as not being active and
+      // subscribe once the connection to NATS server is restored
       logger.warn("No NATS server connection! Try subscribing again when connection is restored.");
       return;
     }
 
-    // Start the subscription
+    // Lastly, start the subscription
     startConsumerSubscription(connection);
   }
 
@@ -152,7 +150,7 @@ public class PubSubTransceiver extends PubTransmitter implements PubSubTunnel, C
 
   @Override
   public Boolean isSubscriptionActive() {
-    return subHandlerRef.get() != null && subscriptionActive.get() && jetstreamSubscription != null;
+    return isSubscribed() && subscriptionActive.get() && jetstreamSubscription != null;
   }
 
   @Override
@@ -161,12 +159,18 @@ public class PubSubTransceiver extends PubTransmitter implements PubSubTunnel, C
     // If there is a NATS connection and a subscription has been request earlier but
     // hasn't been executed yet (due to no connection to the NATS server), try to
     // subscribe again
-    if (isSubscribed() && subscriptionActive.get() == false && connectionPrimer.getConnection() != null) {
-      startConsumerSubscription(connectionPrimer.getConnection());
+    Connection connection = connectionPrimer.getActiveConnection();
+
+    if (isSubscribed() && !isSubscriptionActive() && connection != null) {
+      logger.debug("Try to subscribe again: " + connectionPrimer);
+      startConsumerSubscription(connection);
     }
   }
 
   private void startConsumerSubscription(Connection connection) {
+
+    // Set subscription as being active
+    subscriptionActive.set(true);
 
     try {
       // Get Jetstream stream from the NATS server

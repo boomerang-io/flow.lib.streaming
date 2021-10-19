@@ -83,7 +83,7 @@ public class PubTransmitter implements PubOnlyTunnel {
     }
 
     // Get NATS connection
-    Connection connection = connectionPrimer.getConnection();
+    Connection connection = connectionPrimer.getActiveConnection();
 
     if (connection == null) {
       throw new NoNatsConnectionException("No connection to the NATS server!");

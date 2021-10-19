@@ -16,6 +16,7 @@ import io.nats.client.Consumer;
 import io.nats.client.ErrorListener;
 import io.nats.client.Nats;
 import io.nats.client.Options;
+import io.nats.client.Connection.Status;
 
 /**
  * The {@link ConnectionPrimer ConnectionPrimer} class is the main class for
@@ -137,8 +138,12 @@ public class ConnectionPrimer implements ConnectionListener, ErrorListener, Auto
     }
   }
 
-  public Connection getConnection() {
-    return this.connection;
+  public Connection getActiveConnection() {
+
+    if (this.connection != null && this.connection.getStatus() == Status.CONNECTED) {
+      return this.connection;
+    }
+    return null;
   }
 
   public void addListener(ConnectionPrimerListener listener) {
