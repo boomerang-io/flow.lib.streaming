@@ -125,6 +125,49 @@ public class PubSubTransceiver extends PubTransmitter implements PubSubTunnel, C
       return;
     }
 
+    // Start the subscription
+    startConsumerSubscription(connection);
+  }
+
+  @Override
+  public void unsubscribe() {
+
+    try {
+      jetstreamSubscription.unsubscribe();
+    } catch (Exception e) {
+      logger.debug("An exception was raised when \"unsubscribe()\" method was invoked for \"jetstreamSubscription\": "
+          + e.getLocalizedMessage());
+    }
+
+    // Unset the subscription
+    subHandlerRef = null;
+    jetstreamSubscription = null;
+    subscriptionActive.set(false);
+  }
+
+  @Override
+  public Boolean isSubscribed() {
+    return subHandlerRef.get() != null;
+  }
+
+  @Override
+  public Boolean isSubscriptionActive() {
+    return subHandlerRef.get() != null && subscriptionActive.get() && jetstreamSubscription != null;
+  }
+
+  @Override
+  public void connectionUpdated(ConnectionPrimer connectionPrimer) {
+
+    // If there is a NATS connection and a subscription has been request earlier but
+    // hasn't been executed yet (due to no connection to the NATS server), try to
+    // subscribe again
+    if (isSubscribed() && subscriptionActive.get() == false && connectionPrimer.getConnection() != null) {
+      startConsumerSubscription(connectionPrimer.getConnection());
+    }
+  }
+
+  private void startConsumerSubscription(Connection connection) {
+
     try {
       // Get Jetstream stream from the NATS server
       StreamInfo streamInfo = StreamManager.getStreamInfo(connection, streamConfiguration,
@@ -163,38 +206,6 @@ public class PubSubTransceiver extends PubTransmitter implements PubSubTunnel, C
       subHandlerRef.get().subscriptionFailed(this, e);
       unsubscribe();
     }
-  }
-
-  @Override
-  public void unsubscribe() {
-
-    try {
-      jetstreamSubscription.unsubscribe();
-    } catch (Exception e) {
-      logger.debug("An exception was raised when \"unsubscribe()\" method was invoked for \"jetstreamSubscription\": "
-          + e.getLocalizedMessage());
-    }
-
-    // Unset the subscription
-    subHandlerRef = null;
-    jetstreamSubscription = null;
-    subscriptionActive.set(false);
-  }
-
-  @Override
-  public Boolean isSubscribed() {
-    return subHandlerRef.get() != null;
-  }
-
-  @Override
-  public Boolean isSubscriptionActive() {
-    return subHandlerRef.get() != null && subscriptionActive.get() && jetstreamSubscription != null;
-  }
-
-  @Override
-  public void connectionUpdated(ConnectionPrimer connectionPrimer) {
-    // TODO Auto-generated method stub
-
   }
 
   private void startPushBasedConsumerSubscription(Connection connection) throws IOException, JetStreamApiException {
@@ -239,7 +250,7 @@ public class PubSubTransceiver extends PubTransmitter implements PubSubTunnel, C
       public void run() {
         logger.debug("Handler thread for Jetstream pull-based consumer is running...");
 
-        // TODO Infinite loop - is it risky?
+        // TODO Infinite loop - is this risky?
         while (true) {
           try {
             // Get new message (if any, otherwise wait), then send it to the subscription

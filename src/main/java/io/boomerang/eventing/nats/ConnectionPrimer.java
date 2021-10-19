@@ -169,7 +169,7 @@ public class ConnectionPrimer implements ConnectionListener, ErrorListener, Auto
     // First, clean up null references
     listeners.removeIf(reference -> reference.get() == null);
 
-    // Find the index of the provided listener
+    // Then find the index of the provided listener
     // @formatter:off
     return IntStream.range(0, listeners.size())
         .filter(i -> listeners.get(i).get().equals(listener))
@@ -180,10 +180,13 @@ public class ConnectionPrimer implements ConnectionListener, ErrorListener, Auto
 
   private void notifyAllListeners() {
 
+    // First, clean up null references
+    listeners.removeIf(reference -> reference.get() == null);
+
+    // Then notify existing listeners
     // @formatter:off
     listeners.stream()
         .map(Reference::get)
-        .filter(Objects::nonNull)
         .forEach(listener -> listener.connectionUpdated(this));
     // @formatter:on
   }
