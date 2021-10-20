@@ -2,10 +2,8 @@ package io.boomerang.eventing.nats.jetstream;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import io.boomerang.eventing.nats.ConnectionPrimer;
 import io.boomerang.eventing.nats.jetstream.exception.NoNatsConnectionException;
 import io.boomerang.eventing.nats.jetstream.exception.StreamNotFoundException;
@@ -19,19 +17,16 @@ import io.nats.client.api.StreamInfo;
 import io.nats.client.impl.NatsMessage;
 
 /**
- * Publish-only transmitter class is responsible for managing connection and
- * various properties for the NATS Jetstream {@code Stream} and can only publish
- * new messages to it.
+ * Publish-only transmitter class is responsible for managing connection and various properties for
+ * the NATS Jetstream {@code Stream} and can only publish new messages to it.
  * 
  * @since 0.2.0
  * 
- * @note NATS Jetstream {@code Stream} will be automatically created if
- *       {@code PubOnlyConfiguration}
- *       {@link PubOnlyConfiguration#isAutomaticallyCreateStream
- *       isAutomaticallyCreateStream()} property is set to {@code true}.
- *       Otherwise, {@link PubTransmitter} will try to find the NATS Jetstream
- *       {@code Stream} by stream configuration's
- *       {@link StreamConfiguration#getName name}.
+ * @note NATS Jetstream {@code Stream} will be automatically created if {@code PubOnlyConfiguration}
+ *       {@link PubOnlyConfiguration#isAutomaticallyCreateStream isAutomaticallyCreateStream()}
+ *       property is set to {@code true}. Otherwise, {@link PubTransmitter} will try to find the
+ *       NATS Jetstream {@code Stream} by stream configuration's {@link StreamConfiguration#getName
+ *       name}.
  */
 public class PubTransmitter implements PubOnlyTunnel {
 
@@ -44,22 +39,22 @@ public class PubTransmitter implements PubOnlyTunnel {
   private final PubOnlyConfiguration pubOnlyConfiguration;
 
   /**
-   * Create a new {@link PubTransmitter} object with default configuration
-   * properties.
+   * Create a new {@link PubTransmitter} object with default configuration properties.
    * 
-   * @param connectionPrimer    Connection primer object.
+   * @param connectionPrimer Connection primer object.
    * @param streamConfiguration NATS Jetstream {@code Stream} configuration.
    * @since 0.2.0
    */
-  public PubTransmitter(ConnectionPrimer connectionPrimer, StreamConfiguration streamConfiguration) {
+  public PubTransmitter(ConnectionPrimer connectionPrimer,
+      StreamConfiguration streamConfiguration) {
     this(connectionPrimer, streamConfiguration, new PubOnlyConfiguration.Builder().build());
   }
 
   /**
    * Create a new {@link PubTransmitter} object.
    * 
-   * @param connectionPrimer     Connection primer object.
-   * @param streamConfiguration  NATS Jetstream {@code Stream} configuration.
+   * @param connectionPrimer Connection primer object.
+   * @param streamConfiguration NATS Jetstream {@code Stream} configuration.
    * @param pubOnlyConfiguration {@link PubOnlyConfiguration} object.
    * @since 0.2.0
    */
@@ -79,7 +74,8 @@ public class PubTransmitter implements PubOnlyTunnel {
         .anyMatch(wildcard -> SubjectMatchChecker.doSubjectsMatch(subject, wildcard));
 
     if (!subjectMatches) {
-      throw new SubjectMismatchException("Subject \"" + subject + "\" does not match any subjects of the stream!");
+      throw new SubjectMismatchException(
+          "Subject \"" + subject + "\" does not match any subjects of the stream!");
     }
 
     // Get NATS connection
@@ -94,8 +90,8 @@ public class PubTransmitter implements PubOnlyTunnel {
         pubOnlyConfiguration.isAutomaticallyCreateStream());
 
     if (streamInfo == null) {
-      throw new StreamNotFoundException(
-          "Stream could not be found! Consider enabling " + "`automaticallyCreateStream` in `PubOnlyConfiguration`");
+      throw new StreamNotFoundException("Stream could not be found! Consider enabling "
+          + "`automaticallyCreateStream` in `PubOnlyConfiguration`");
     }
 
     // Create the NATS message

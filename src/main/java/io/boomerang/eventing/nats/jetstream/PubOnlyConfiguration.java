@@ -1,18 +1,18 @@
 package io.boomerang.eventing.nats.jetstream;
 
 /**
- * The {@link PubOnlyConfiguration} class specifies the configuration for
- * managing a NATS Jetstream {@code Stream} on the server. Properties are set
- * using a {@link PubOnlyConfiguration.Builder Builder}.
+ * The {@link PubOnlyConfiguration} class specifies the configuration for managing a NATS Jetstream
+ * {@code Stream} on the server. Properties are set using a {@link PubOnlyConfiguration.Builder
+ * Builder}.
  * 
  * @since 0.2.0
  */
 final public class PubOnlyConfiguration {
 
   /**
-   * The NATS Jetstream {@code Stream} will be created automatically on the server
-   * if the value of {@link PubOnlyConfiguration#automaticallyCreateStream
-   * automaticallyCreateStream} is {@code true}.
+   * The NATS Jetstream {@code Stream} will be created automatically on the server if the value of
+   * {@link PubOnlyConfiguration#automaticallyCreateStream automaticallyCreateStream} is
+   * {@code true}.
    * 
    * @since 0.2.0
    */
@@ -49,9 +49,8 @@ final public class PubOnlyConfiguration {
   }
 
   /**
-   * {@link PubOnlyConfiguration} is created using a {@link Builder}. The builder
-   * supports chaining and will create a default set of options if no methods are
-   * called.
+   * {@link PubOnlyConfiguration} is created using a {@link Builder}. The builder supports chaining
+   * and will create a default set of options if no methods are called.
    * 
    * <br/>
    * <br/>
@@ -64,9 +63,9 @@ final public class PubOnlyConfiguration {
   public static class Builder {
 
     /**
-     * The NATS Jetstream {@code Stream} will be created automatically on the server
-     * if the value of {@link PubOnlyConfiguration.Builder#automaticallyCreateStream
-     * automaticallyCreateStream} is {@code true}.
+     * The NATS Jetstream {@code Stream} will be created automatically on the server if the value of
+     * {@link PubOnlyConfiguration.Builder#automaticallyCreateStream automaticallyCreateStream} is
+     * {@code true}.
      * 
      * @node Default value is {@code true}.
      * @since 0.2.0
@@ -76,8 +75,7 @@ final public class PubOnlyConfiguration {
     /**
      * @since 0.2.0
      */
-    public Builder() {
-    }
+    public Builder() {}
 
     /**
      * @since 0.2.0
