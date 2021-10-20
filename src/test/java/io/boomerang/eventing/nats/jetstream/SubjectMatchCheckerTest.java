@@ -27,7 +27,7 @@ public class SubjectMatchCheckerTest {
   }
 
   @Test
-  void singleTokenMatch() {
+  void testSingleTokenMatch() {
 
     assertTrue(SubjectMatchChecker.doSubjectsMatch("flow", "*"));
     assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.event", "flow.*"));
@@ -48,7 +48,7 @@ public class SubjectMatchCheckerTest {
   }
 
   @Test
-  void multipleTokensMatch() {
+  void testMultipleTokensMatch() {
 
     assertTrue(SubjectMatchChecker.doSubjectsMatch("flow", ">"));
     assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test", "flow.>"));
@@ -68,7 +68,7 @@ public class SubjectMatchCheckerTest {
   }
 
   @Test
-  void mixWildcardMatch() {
+  void testMixWildcardMatch() {
 
     assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test.one", "flow.*.>"));
     assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test.one", "flow.>.*"));
