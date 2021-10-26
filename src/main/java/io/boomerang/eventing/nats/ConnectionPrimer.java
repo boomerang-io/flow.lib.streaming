@@ -22,19 +22,14 @@ import io.nats.client.Options;
  * <br />
  * <br />
  * 
- * Connections, by default, are configured to try to reconnect to the server if there is a network
- * failure up to {@link NatsProperties#DEFAULT_MAX_RECONNECT_ATTEMPTS times}. You can configure this
- * behavior in the {@link NatsProperties NatsProperties}.
- * 
- * <br />
- * <br />
- * 
- * The list of servers used for connecting is provided by the {@link NatsProperties NatsProperties}.
- * 
- * <br />
- * <br />
+ * {@link ConnectionPrimer ConnectionPrimer} is build on top of {@code jnats}
+ * {@link io.nats.client.Connection Connection}, thus it shares a lot of properties and options with
+ * {@code jnats} {@link io.nats.client.Connection Connection}.
  * 
  * When a connection is {@link #close() closed} the thread and socket resources are cleaned up.
+ * 
+ * <br />
+ * <br />
  * 
  * @since 0.1.0
  */
