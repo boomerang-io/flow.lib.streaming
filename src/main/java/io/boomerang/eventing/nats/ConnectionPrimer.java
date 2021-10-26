@@ -4,13 +4,11 @@ import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.IntStream;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import io.nats.client.Connection;
+import io.nats.client.Connection.Status;
 import io.nats.client.ConnectionListener;
 import io.nats.client.Consumer;
 import io.nats.client.ErrorListener;
@@ -18,28 +16,20 @@ import io.nats.client.Nats;
 import io.nats.client.Options;
 
 /**
- * The {@link ConnectionPrimer ConnectionPrimer} class is the main class for
- * managing the connection to the NATS server.
+ * The {@link ConnectionPrimer ConnectionPrimer} class is the main class for managing the connection
+ * to the NATS server.
  * 
  * <br />
  * <br />
  * 
- * Connections, by default, are configured to try to reconnect to the server if
- * there is a network failure up to
- * {@link NatsProperties#DEFAULT_MAX_RECONNECT_ATTEMPTS times}. You can
- * configure this behavior in the {@link NatsProperties NatsProperties}.
+ * {@link ConnectionPrimer ConnectionPrimer} is build on top of {@code jnats}
+ * {@link io.nats.client.Connection Connection}, thus it shares a lot of properties and options with
+ * {@code jnats} {@link io.nats.client.Connection Connection}.
+ * 
+ * When a connection is {@link #close() closed} the thread and socket resources are cleaned up.
  * 
  * <br />
  * <br />
- * 
- * The list of servers used for connecting is provided by the
- * {@link NatsProperties NatsProperties}.
- * 
- * <br />
- * <br />
- * 
- * When a connection is {@link #close() closed} the thread and socket resources
- * are cleaned up.
  * 
  * @since 0.1.0
  */
@@ -49,63 +39,56 @@ public class ConnectionPrimer implements ConnectionListener, ErrorListener, Auto
 
   private Connection connection;
 
+  private final Options options;
+
   private List<Reference<ConnectionPrimerListener>> listeners = new ArrayList<>();
 
   /**
-   * Create a new {@link ConnectionPrimer ConnectionPrimer} object with the
-   * default connection options and a NATS server URL.
+   * Create a new {@link ConnectionPrimer ConnectionPrimer} object with the default connection
+   * options and a NATS server URL.
    * 
    * @param serverURL The URL string for the NATS server.
-   * 
-   * @see {@link io.nats.client.Options Options} for default connection options
-   *      for the NATS server.
+   * @since 0.1.0
+   * @see {@link io.nats.client.Options Options} for default connection options for the NATS server.
    */
   public ConnectionPrimer(String serverURL) {
     this(List.of(serverURL));
   }
 
   /**
-   * Create a new {@link ConnectionPrimer ConnectionPrimer} object with the
-   * default connection options and a list of known NATS server URLs.
+   * Create a new {@link ConnectionPrimer ConnectionPrimer} object with the default connection
+   * options and a list of known NATS server URLs.
    * 
    * @param serverURLs A list of server URL strings for NATS servers.
-   * 
-   * @see {@link io.nats.client.Options Options} for default connection options
-   *      for the NATS server.
+   * @since 0.1.0
+   * @see {@link io.nats.client.Options Options} for default connection options for the NATS server.
    */
   public ConnectionPrimer(List<String> serverURLs) {
     this(new Options.Builder().servers(serverURLs.toArray(new String[0])));
   }
 
   /**
-   * Create a new {@link ConnectionPrimer ConnectionPrimer} object with the
-   * provided connection configuration from {@link io.nats.client.Options.Builder
-   * Builder}.
+   * Create a new {@link ConnectionPrimer ConnectionPrimer} object with the provided connection
+   * configuration from {@link io.nats.client.Options.Builder Builder}.
    * 
    * @param optionsBuilder NATS server connection options builder.
-   * 
-   * @note {@link io.nats.client.Options.Builder#connectionListener
-   *       connectionListener} and
-   *       {@link io.nats.client.Options.Builder#errorListener errorListener}
-   *       handlers will be <b>overwritten</b> as the connection to the NATS
-   *       server is managed automatically by {@link ConnectionPrimer
-   *       ConnectionPrimer}.
+   * @since 0.1.0
+   * @note It is <b>important</b> to know that
+   *       {@link io.nats.client.Options.Builder#connectionListener connectionListener} and
+   *       {@link io.nats.client.Options.Builder#errorListener errorListener} handlers will be
+   *       <b>overwritten</b> as the connection to the NATS server is managed automatically by
+   *       {@link ConnectionPrimer ConnectionPrimer}.
    */
   public ConnectionPrimer(Options.Builder optionsBuilder) {
 
     // @formatter:off
-    Options options = optionsBuilder
+    options = optionsBuilder
         .connectionListener(this)
         .errorListener(this)
         .build();
     // @formatter:on
 
-    // Try to connect in another thread
-    try {
-      Nats.connectAsynchronously(options, true);
-    } catch (InterruptedException e) {
-      logger.error("An error occurred while connecting to known NATS servers!", e);
-    }
+    connect();
   }
 
   @Override
@@ -130,6 +113,24 @@ public class ConnectionPrimer implements ConnectionListener, ErrorListener, Auto
     logger.debug("NATS detected a slow consumer [" + consumer + "] on connection: " + conn);
   }
 
+  public void connect() {
+
+    // Try to connect synchronously
+    try {
+      this.connection = Nats.connect(options);
+    } catch (Exception e1) {
+
+      // Synchronously connection failed for some reason, try to connect to the server
+      // asynchronously
+      try {
+        Nats.connectAsynchronously(options, true);
+      } catch (InterruptedException e2) {
+
+        logger.error("An error occurred while connecting to known NATS servers!", e2);
+      }
+    }
+  }
+
   @Override
   public void close() throws Exception {
     if (connection != null) {
@@ -137,8 +138,12 @@ public class ConnectionPrimer implements ConnectionListener, ErrorListener, Auto
     }
   }
 
-  public Connection getConnection() {
-    return this.connection;
+  public Connection getActiveConnection() {
+
+    if (this.connection != null && this.connection.getStatus() == Status.CONNECTED) {
+      return this.connection;
+    }
+    return null;
   }
 
   public void addListener(ConnectionPrimerListener listener) {
@@ -169,7 +174,7 @@ public class ConnectionPrimer implements ConnectionListener, ErrorListener, Auto
     // First, clean up null references
     listeners.removeIf(reference -> reference.get() == null);
 
-    // Find the index of the provided listener
+    // Then find the index of the provided listener
     // @formatter:off
     return IntStream.range(0, listeners.size())
         .filter(i -> listeners.get(i).get().equals(listener))
@@ -180,10 +185,13 @@ public class ConnectionPrimer implements ConnectionListener, ErrorListener, Auto
 
   private void notifyAllListeners() {
 
+    // First, clean up null references
+    listeners.removeIf(reference -> reference.get() == null);
+
+    // Then notify existing listeners
     // @formatter:off
     listeners.stream()
         .map(Reference::get)
-        .filter(Objects::nonNull)
         .forEach(listener -> listener.connectionUpdated(this));
     // @formatter:on
   }

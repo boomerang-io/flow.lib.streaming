@@ -2,13 +2,16 @@ package io.boomerang.eventing.nats.jetstream;
 
 import java.util.Arrays;
 
+/**
+ * @since 0.1.0
+ */
 class SubjectMatchChecker {
 
   static Boolean doSubjectsMatch(String fixedSubject, String wildcardSubject) {
 
     // @formatter:off
     /**
-     * Dynamic programming
+     * Dynamic programming algorithm
      * Time:  O(n * m)
      * Space: O(m)
      * 

@@ -1,15 +1,16 @@
 package io.boomerang.eventing.nats.jetstream;
 
 import java.io.IOException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import io.nats.client.Connection;
 import io.nats.client.JetStreamApiException;
 import io.nats.client.api.StreamConfiguration;
 import io.nats.client.api.StreamInfo;
 
+/**
+ * @since 0.1.0
+ */
 class StreamManager {
 
   private static final Logger logger = LogManager.getLogger(StreamManager.class);
@@ -17,13 +18,13 @@ class StreamManager {
   /**
    * This helper method creates and returns a new Jetstream stream.
    * 
-   * @param connection          NATS server {@link io.nats.client.Connection
-   *                            Connection} object.
-   * @param streamConfiguration {@link io.nats.client.api.StreamConfiguration
-   *                            StreamConfiguration} for creating the new Stream.
+   * @param connection NATS server {@link io.nats.client.Connection Connection} object.
+   * @param streamConfiguration {@link io.nats.client.api.StreamConfiguration StreamConfiguration}
+   *        for creating the new Stream.
+   * @return A new {@link io.nats.client.api.StreamInfo StreamInfo} object.
    * @throws JetStreamApiException
    * @throws IOException
-   * @return A new {@link io.nats.client.api.StreamInfo StreamInfo} object.
+   * @since 0.1.0
    */
   static StreamInfo createNewStream(Connection connection, StreamConfiguration streamConfiguration)
       throws IOException, JetStreamApiException {
@@ -34,17 +35,16 @@ class StreamManager {
   }
 
   /**
-   * This helper method returns information about a Jetstream stream if this
-   * exists, {@code null} otherwise.
+   * This helper method returns information about a Jetstream stream if this exists, {@code null}
+   * otherwise.
    * 
-   * @param connection          NATS server {@link io.nats.client.Connection
-   *                            Connection} object.
-   * @param streamConfiguration {@link io.nats.client.api.StreamConfiguration
-   *                            StreamConfiguration} for Stream lookup.
+   * @param connection NATS server {@link io.nats.client.Connection Connection} object.
+   * @param streamConfiguration {@link io.nats.client.api.StreamConfiguration StreamConfiguration}
+   *        for Stream lookup.
+   * @return Stream information. See {@link io.nats.client.api.StreamInfo StreamInfo}.
    * @throws JetStreamApiException
    * @throws IOException
-   * @return Stream information. See {@link io.nats.client.api.StreamInfo
-   *         StreamInfo}.
+   * @since 0.1.0
    */
   static StreamInfo getStreamInfo(Connection connection, StreamConfiguration streamConfiguration)
       throws IOException, JetStreamApiException {
@@ -52,19 +52,18 @@ class StreamManager {
   }
 
   /**
-   * This helper method returns information about a Jetstream stream if this
-   * exists or has been created, {@code null} otherwise.
+   * This helper method returns information about a Jetstream stream if this exists or has been
+   * created, {@code null} otherwise.
    * 
-   * @param connection          NATS server {@link io.nats.client.Connection
-   *                            Connection} object.
-   * @param streamConfiguration {@link io.nats.client.api.StreamConfiguration
-   *                            StreamConfiguration} for Stream lookup.
-   * @param createIfMissing     Set to {@code true} to try to create a new Stream
-   *                            if this can't be found on the NATS server.
+   * @param connection NATS server {@link io.nats.client.Connection Connection} object.
+   * @param streamConfiguration {@link io.nats.client.api.StreamConfiguration StreamConfiguration}
+   *        for Stream lookup.
+   * @param createIfMissing Set to {@code true} to try to create a new Stream if this can't be found
+   *        on the NATS server.
+   * @return Stream information. See {@link io.nats.client.api.StreamInfo StreamInfo}.
    * @throws JetStreamApiException
    * @throws IOException
-   * @return Stream information. See {@link io.nats.client.api.StreamInfo
-   *         StreamInfo}.
+   * @since 0.1.0
    */
   static StreamInfo getStreamInfo(Connection connection, StreamConfiguration streamConfiguration,
       Boolean createIfMissing) throws IOException, JetStreamApiException {
@@ -82,14 +81,13 @@ class StreamManager {
   }
 
   /**
-   * This helper method returns {@code true} if a stream exists. {@code false}
-   * otherwise.
+   * This helper method returns {@code true} if a stream exists. {@code false} otherwise.
    * 
-   * @param connection          NATS server {@link io.nats.client.Connection
-   *                            Connection} object.
-   * @param streamConfiguration {@link io.nats.client.api.StreamConfiguration
-   *                            StreamConfiguration} for Stream lookup.
+   * @param connection NATS server {@link io.nats.client.Connection Connection} object.
+   * @param streamConfiguration {@link io.nats.client.api.StreamConfiguration StreamConfiguration}
+   *        for Stream lookup.
    * @return {@link java.lang.Boolean Boolean}.
+   * @since 0.1.0
    */
   static boolean streamExists(Connection connection, StreamConfiguration streamConfiguration) {
     try {

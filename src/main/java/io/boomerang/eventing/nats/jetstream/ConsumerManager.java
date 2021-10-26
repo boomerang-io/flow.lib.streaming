@@ -1,17 +1,18 @@
 package io.boomerang.eventing.nats.jetstream;
 
 import java.io.IOException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.util.Strings;
-
 import io.nats.client.Connection;
 import io.nats.client.JetStreamApiException;
 import io.nats.client.api.ConsumerConfiguration;
 import io.nats.client.api.ConsumerInfo;
 import io.nats.client.api.StreamInfo;
 
+/**
+ * @since 0.1.0
+ */
 class ConsumerManager {
 
   private static final Logger logger = LogManager.getLogger(ConsumerManager.class);
@@ -19,43 +20,41 @@ class ConsumerManager {
   /**
    * This helper method creates and returns a new Jetstream consumer.
    * 
-   * @param connection            NATS server {@link io.nats.client.Connection
-   *                              Connection} object.
-   * @param streamInfo            {@link io.nats.client.api.StreamInfo StreamInfo}
-   *                              object referencing an existing Jetstream stream.
+   * @param connection NATS server {@link io.nats.client.Connection Connection} object.
+   * @param streamInfo {@link io.nats.client.api.StreamInfo StreamInfo} object referencing an
+   *        existing Jetstream stream.
    * @param consumerConfiguration {@link io.nats.client.api.ConsumerConfiguration
-   *                              ConsumerConfiguration} for creating the new
-   *                              Consumer.
+   *        ConsumerConfiguration} for creating the new Consumer.
+   * @return A new {@link io.nats.client.api.ConsumerInfo ConsumerInfo} object.
    * @throws JetStreamApiException
    * @throws IOException
-   * @return A new {@link io.nats.client.api.ConsumerInfo ConsumerInfo} object.
+   * @since 0.1.0
    */
   static ConsumerInfo createNewConsumer(Connection connection, StreamInfo streamInfo,
       ConsumerConfiguration consumerConfiguration) throws IOException, JetStreamApiException {
 
-    logger.debug("Initializing a new Jetstream consumer of type \"" + getConsumerType(consumerConfiguration)
-        + "\" with configuration: " + consumerConfiguration);
+    logger.debug(
+        "Initializing a new Jetstream consumer of type \"" + getConsumerType(consumerConfiguration)
+            + "\" with configuration: " + consumerConfiguration);
 
     // Create and return Jetstream consumer
-    return connection.jetStreamManagement().addOrUpdateConsumer(streamInfo.getConfiguration().getName(),
-        consumerConfiguration);
+    return connection.jetStreamManagement()
+        .addOrUpdateConsumer(streamInfo.getConfiguration().getName(), consumerConfiguration);
   }
 
   /**
-   * This helper method returns information about a Jetstream consumer if this
-   * exists, {@code null} otherwise.
+   * This helper method returns information about a Jetstream consumer if this exists, {@code null}
+   * otherwise.
    * 
-   * @param connection            NATS server {@link io.nats.client.Connection
-   *                              Connection} object.
-   * @param streamInfo            {@link io.nats.client.api.StreamInfo StreamInfo}
-   *                              object referencing an existing Jetstream stream.
+   * @param connection NATS server {@link io.nats.client.Connection Connection} object.
+   * @param streamInfo {@link io.nats.client.api.StreamInfo StreamInfo} object referencing an
+   *        existing Jetstream stream.
    * @param consumerConfiguration {@link io.nats.client.api.ConsumerConfiguration
-   *                              ConsumerConfiguration} for creating the new
-   *                              Consumer.
+   *        ConsumerConfiguration} for creating the new Consumer.
+   * @return Consumer information. See {@link io.nats.client.api.ConsumerInfo ConsumerInfo}.
    * @throws JetStreamApiException
    * @throws IOException
-   * @return Consumer information. See {@link io.nats.client.api.ConsumerInfo
-   *         ConsumerInfo}.
+   * @since 0.1.0
    */
   static ConsumerInfo getConsumerInfo(Connection connection, StreamInfo streamInfo,
       ConsumerConfiguration consumerConfiguration) throws IOException, JetStreamApiException {
@@ -63,34 +62,33 @@ class ConsumerManager {
   }
 
   /**
-   * This helper method returns information about a Jetstream consumer if this
-   * exists or has been created, {@code null} otherwise.
+   * This helper method returns information about a Jetstream consumer if this exists or has been
+   * created, {@code null} otherwise.
    * 
-   * @param connection            NATS server {@link io.nats.client.Connection
-   *                              Connection} object.
-   * @param streamInfo            {@link io.nats.client.api.StreamInfo StreamInfo}
-   *                              object referencing an existing Jetstream stream.
+   * @param connection NATS server {@link io.nats.client.Connection Connection} object.
+   * @param streamInfo {@link io.nats.client.api.StreamInfo StreamInfo} object referencing an
+   *        existing Jetstream stream.
    * @param consumerConfiguration {@link io.nats.client.api.ConsumerConfiguration
-   *                              ConsumerConfiguration} for creating the new
-   *                              Consumer.
-   * @param createIfMissing       Set to {@code true} to try to create a new
-   *                              Consumer if this can't be found on the NATS
-   *                              server.
+   *        ConsumerConfiguration} for creating the new Consumer.
+   * @param createIfMissing Set to {@code true} to try to create a new Consumer if this can't be
+   *        found on the NATS server.
+   * @return Consumer information. See {@link io.nats.client.api.ConsumerInfo ConsumerInfo}.
    * @throws JetStreamApiException
    * @throws IOException
-   * @return Consumer information. See {@link io.nats.client.api.ConsumerInfo
-   *         ConsumerInfo}.
+   * @since 0.1.0
    */
   static ConsumerInfo getConsumerInfo(Connection connection, StreamInfo streamInfo,
-      ConsumerConfiguration consumerConfiguration, Boolean createIfMissing) throws IOException, JetStreamApiException {
+      ConsumerConfiguration consumerConfiguration, Boolean createIfMissing)
+      throws IOException, JetStreamApiException {
 
     try {
-      return connection.jetStreamManagement().getConsumerInfo(streamInfo.getConfiguration().getName(),
-          consumerConfiguration.getDurable());
+      return connection.jetStreamManagement().getConsumerInfo(
+          streamInfo.getConfiguration().getName(), consumerConfiguration.getDurable());
     } catch (JetStreamApiException e) {
 
       if (e.getErrorCode() == 404) {
-        return createIfMissing ? createNewConsumer(connection, streamInfo, consumerConfiguration) : null;
+        return createIfMissing ? createNewConsumer(connection, streamInfo, consumerConfiguration)
+            : null;
       } else {
         throw e;
       }
@@ -98,17 +96,16 @@ class ConsumerManager {
   }
 
   /**
-   * This helper method returns {@code true} if a consumer of with the requested
-   * configuration exists. {@code false} otherwise.
+   * This helper method returns {@code true} if a consumer of with the requested configuration
+   * exists. {@code false} otherwise.
    * 
-   * @param connection            NATS server {@link io.nats.client.Connection
-   *                              Connection} object.
-   * @param streamInfo            {@link io.nats.client.api.StreamInfo StreamInfo}
-   *                              object referencing an existing Jetstream stream.
+   * @param connection NATS server {@link io.nats.client.Connection Connection} object.
+   * @param streamInfo {@link io.nats.client.api.StreamInfo StreamInfo} object referencing an
+   *        existing Jetstream stream.
    * @param consumerConfiguration {@link io.nats.client.api.ConsumerConfiguration
-   *                              ConsumerConfiguration} for creating the new
-   *                              Consumer.
+   *        ConsumerConfiguration} for creating the new Consumer.
    * @return {@link java.lang.Boolean Boolean}.
+   * @since 0.1.0
    */
   static Boolean consumerExists(Connection connection, StreamInfo streamInfo,
       ConsumerConfiguration consumerConfiguration) {
@@ -125,9 +122,9 @@ class ConsumerManager {
    * {@link io.nats.client.api.ConsumerConfiguration ConsumerConfiguration}.
    *
    * @param consumerConfiguration {@link io.nats.client.api.ConsumerConfiguration
-   *                              ConsumerConfiguration} to retrieve
-   *                              {@link ConsumerType ConsumerType}
+   *        ConsumerConfiguration} to retrieve {@link ConsumerType ConsumerType}
    * @return A {@link ConsumerType ConsumerType} object.
+   * @since 0.1.0
    */
   static ConsumerType getConsumerType(ConsumerConfiguration consumerConfiguration) {
     if (Strings.isBlank(consumerConfiguration.getDeliverSubject())) {
