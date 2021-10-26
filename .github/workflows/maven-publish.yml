@@ -30,6 +30,6 @@ jobs:
         run: sudo mvn -B package --file pom.xml # Sudo is needed here to run tests with a mocked NATS server
 
       - name: Publish to GitHub Packages Apache Maven
-        run: mvn deploy --batch-mode -DskipTests -s $GITHUB_WORKSPACE/settings.xml
+        run: sudo mvn clean && mvn deploy --batch-mode -DskipTests -s ${{ github.workspace }}/settings.xml
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
