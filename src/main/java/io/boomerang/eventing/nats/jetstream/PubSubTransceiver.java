@@ -219,10 +219,12 @@ public class PubSubTransceiver extends PubTransmitter
 
       if (message != null && subHandlerRef.get() != null) {
 
+        // Acknowledge the message first (prevent slow consumers)
+        message.ack();
+
         // Notify subscription handler
         subHandlerRef.get().newMessageReceived(this, message.getSubject(),
             new String(message.getData()));
-        message.ack();
 
       } else {
 
