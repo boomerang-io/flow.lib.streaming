@@ -35,7 +35,7 @@ This plugin has been built on top of [`jnats`][3] client library, targeting an e
 ### Test Maven Dependencies
 
 1. JUnit ([`junit`][5])
-2. Embedded NATS server ([`nats-streaming-server-embedded`][9])
+2. NATS server ([`nats-streaming-server-embedded`][9])
 3. Awaitility ([`awaitility`][10])
 
 ## Installation
@@ -201,6 +201,6 @@ All of our work is licenses under the [Apache License Version 2.0][8] unless spe
 [6]: https://docs.github.com/en/packages "GitHub Packages"
 [7]: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry#authenticating-to-github-packages "Authenticating to GitHub Packages"
 [8]: https://www.apache.org/licenses/LICENSE-2.0 "Apache License Version 2.0"
-[9]: https://mvnrepository.com/artifact/berlin.yuna/nats-streaming-server-embedded "Maven Repository - NATS Streaming Server Embedded"
+[9]: https://mvnrepository.com/artifact/berlin.yuna/nats-server "Maven Repository - NATS Streaming Server"
 [10]: https://mvnrepository.com/artifact/org.awaitility/awaitility/4.1.1 "Maven Repository - Awaitility: a Java DSL for synchronizing asynchronous operations"
 [11]: https://docs.nats.io/nats-concepts/subjects#wildcards "NATS subject-based messaging - wildcard"
