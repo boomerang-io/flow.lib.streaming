@@ -42,8 +42,7 @@ public class PubTransmitterTest {
   @BeforeEach
   void setupNatsServer() {
     // @formatter:off
-    natsServer = new Nats()
-        .port(SERVER_PORT)
+    natsServer = new Nats(SERVER_PORT)
         .config(NatsConfig.JETSTREAM, "true")
         .config(NatsConfig.STORE_DIR, jetstreamStoreDir);
     // @formatter:on
@@ -62,7 +61,7 @@ public class PubTransmitterTest {
   }
 
   @Test
-  void testSubjectMatch() throws IOException {
+  void testSubjectMatch() throws Exception {
     natsServer.start();
 
     final ConnectionPrimer connectionPrimer = new ConnectionPrimer(serverUrl);
@@ -79,7 +78,7 @@ public class PubTransmitterTest {
   }
 
   @Test
-  void testCreateStream() throws IOException {
+  void testCreateStream() throws Exception {
     natsServer.start();
 
     final ConnectionPrimer connectionPrimer = new ConnectionPrimer(serverUrl);
@@ -103,7 +102,7 @@ public class PubTransmitterTest {
   }
 
   @Test
-  void testServerConnection() throws IOException, InterruptedException {
+  void testServerConnection() throws Exception {
     final ConnectionPrimer connectionPrimer = new ConnectionPrimer(
         new Options.Builder().server(serverUrl).reconnectWait(Duration.ofMillis(500)));
 

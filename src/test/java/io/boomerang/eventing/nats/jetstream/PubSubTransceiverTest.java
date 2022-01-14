@@ -45,8 +45,7 @@ public class PubSubTransceiverTest {
   @BeforeEach
   void setupNatsServer() {
     // @formatter:off
-    natsServer = new Nats()
-        .port(SERVER_PORT)
+    natsServer = new Nats(SERVER_PORT)
         .config(NatsConfig.JETSTREAM, "true")
         .config(NatsConfig.STORE_DIR, jetstreamStoreDir);
     // @formatter:on
@@ -65,7 +64,7 @@ public class PubSubTransceiverTest {
   }
 
   @Test
-  void testPubSubPushConsumer() throws IOException, InterruptedException {
+  void testPubSubPushConsumer() throws Exception {
     List<String> testSubjects = List.of("test1", "test2", "test3", "test4", "test4");
     String testMessage = "Test message!";
 
@@ -103,7 +102,7 @@ public class PubSubTransceiverTest {
   }
 
   @Test
-  void testPubSubPullConsumer() throws IOException, InterruptedException {
+  void testPubSubPullConsumer() throws Exception {
     List<String> testSubjects = List.of("test1", "test2", "test3", "test4", "test4");
     String testMessage = "Test message!";
 

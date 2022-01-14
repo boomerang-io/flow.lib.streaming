@@ -135,7 +135,7 @@ public class PubSubTransceiver extends PubTransmitter
     }
 
     // Unset the subscription
-    subHandlerRef = null;
+    subHandlerRef = new WeakReference<>(null);
     jetstreamSubscription = null;
     subscriptionActive.set(false);
   }

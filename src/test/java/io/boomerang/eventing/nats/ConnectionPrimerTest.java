@@ -42,8 +42,7 @@ public class ConnectionPrimerTest {
   @BeforeEach
   void setupNatsServer() {
     // @formatter:off
-    natsServer = new Nats()
-        .port(SERVER_PORT)
+    natsServer = new Nats(SERVER_PORT)
         .config(NatsConfig.JETSTREAM, "true")
         .config(NatsConfig.STORE_DIR, jetstreamStoreDir);
     // @formatter:on
@@ -62,7 +61,7 @@ public class ConnectionPrimerTest {
   }
 
   @Test
-  public void testConnectToServer() throws IOException {
+  public void testConnectToServer() throws Exception {
     natsServer.start();
 
     final ConnectionPrimer connectionPrimer = new ConnectionPrimer(serverUrl);
@@ -76,7 +75,7 @@ public class ConnectionPrimerTest {
   }
 
   @Test
-  public void testConnectBeforeServerStarted() throws IOException, InterruptedException {
+  public void testConnectBeforeServerStarted() throws Exception {
     final ConnectionPrimer connectionPrimer = new ConnectionPrimer(
         new Options.Builder().server(serverUrl).reconnectWait(Duration.ofMillis(500)));
 
@@ -107,7 +106,7 @@ public class ConnectionPrimerTest {
   }
 
   @Test
-  public void testListenerUpdates() throws IOException, InterruptedException {
+  public void testListenerUpdates() throws Exception {
     final AtomicBoolean serverIsOnline = new AtomicBoolean(false);
     final AtomicInteger fails = new AtomicInteger();
 
