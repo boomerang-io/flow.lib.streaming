@@ -122,6 +122,10 @@ public class ConnectionPrimer implements ConnectionListener, ErrorListener, Auto
 
       // Synchronously connection failed for some reason, try to connect to the server
       // asynchronously
+      logger.warn(
+          "Failed to connect synchronously to the NATS server! Fall back to asynchronous connection.",
+          e1);
+
       try {
         Nats.connectAsynchronously(options, true);
       } catch (InterruptedException e2) {
