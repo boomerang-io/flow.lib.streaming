@@ -5,7 +5,7 @@
 
 	<groupId>io.boomerang</groupId>
 	<artifactId>lib-eventing</artifactId>
-	<version>0.2.4</version>
+	<version>0.2.5</version>
 	<name>Boomerang Lib Eventing</name>
 	<url>https://github.com/boomerang-io/lib.eventing</url>
 
@@ -41,7 +41,7 @@
 		<dependency>
 			<groupId>berlin.yuna</groupId>
 			<artifactId>nats-server</artifactId>
-			<version>2.6.16</version>
+			<version>2.6.19</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
