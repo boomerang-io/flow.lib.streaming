@@ -258,7 +258,8 @@ public class PubSubTransceiver extends PubTransmitter
     // Create pull subscription options and subscriber itself
     PullSubscribeOptions options =
         PullSubscribeOptions.builder().durable(consumerConfiguration.getDurable()).build();
-    JetStreamSubscription subscription = connection.jetStream().subscribe(">", options);
+    String anySubject = streamConfiguration.getSubjects().stream().findAny().orElse(">");
+    JetStreamSubscription subscription = connection.jetStream().subscribe(anySubject, options);
     PubSubTunnel tunnel = this;
     jetstreamSubscription = subscription;
 
