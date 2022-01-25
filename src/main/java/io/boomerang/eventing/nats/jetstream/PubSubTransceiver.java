@@ -204,8 +204,9 @@ public class PubSubTransceiver extends PubTransmitter
     } catch (Exception e) {
 
       // Failed to subscribe, invoke the handler failed method and unsubscribe
+      SubHandler subHandler = subHandlerRef.get();
       unsubscribe();
-      subHandlerRef.get().subscriptionFailed(this, e);
+      subHandler.subscriptionFailed(this, e);
     }
   }
 
