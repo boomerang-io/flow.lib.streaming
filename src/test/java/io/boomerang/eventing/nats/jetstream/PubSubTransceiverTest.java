@@ -48,6 +48,7 @@ public class PubSubTransceiverTest {
   private Nats natsServer;
 
   @BeforeEach
+  @SuppressWarnings("resource")
   void setupNatsServer() {
     // @formatter:off
     natsServer = new Nats(SERVER_PORT)
