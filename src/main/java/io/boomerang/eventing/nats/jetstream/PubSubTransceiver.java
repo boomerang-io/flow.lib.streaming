@@ -185,7 +185,7 @@ public class PubSubTransceiver extends PubTransmitter
 
       if (consumerInfo == null) {
         throw new ConsumerNotFoundException("Consumer could not be found! Consider enabling "
-            + "`automaticallyCreateConsumer` in `TinCanConfiguration`");
+            + "`automaticallyCreateConsumer` in `PubSubConfiguration`");
       }
 
       // Based on the consumer type, start the appropriate subscription
