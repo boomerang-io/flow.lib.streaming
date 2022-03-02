@@ -236,18 +236,13 @@ public class PubSubTransceiver extends PubTransmitter
     };
     // Create a dispatcher without a default handler and the push subscription
     // options
-    // @formatter:off
     Dispatcher dispatcher = connection.createDispatcher();
-    PushSubscribeOptions options = PushSubscribeOptions.builder()
-        .stream(streamConfiguration.getName())
-        .durable(consumerConfiguration.getDurable())
-        .build();
-    // @formatter:on
+    PushSubscribeOptions options = PushSubscribeOptions.bind(streamConfiguration.getName(),
+        consumerConfiguration.getDurable());
 
     // Subscribe to receive messages on subject and return this subscription
-    jetstreamSubscription = connection.jetStream().subscribe(
-        streamConfiguration.getSubjects().stream().findFirst().orElse(">"), dispatcher, handler,
-        false, options);
+    jetstreamSubscription =
+        connection.jetStream().subscribe(null, dispatcher, handler, false, options);
 
     logger.debug("Successfully subscribed to NATS Jetstream consumer! " + jetstreamSubscription);
   }
@@ -256,13 +251,13 @@ public class PubSubTransceiver extends PubTransmitter
       throws IOException, JetStreamApiException {
 
     // Create pull subscription options and subscriber itself
-    PullSubscribeOptions options =
-        PullSubscribeOptions.builder().durable(consumerConfiguration.getDurable()).build();
-    String anySubject = streamConfiguration.getSubjects().stream().findAny().orElse(">");
-    JetStreamSubscription subscription = connection.jetStream().subscribe(anySubject, options);
+    PullSubscribeOptions options = PullSubscribeOptions.bind(streamConfiguration.getName(),
+        consumerConfiguration.getDurable());
+    JetStreamSubscription subscription = connection.jetStream().subscribe(null, options);
     PubSubTunnel tunnel = this;
     jetstreamSubscription = subscription;
 
+    // Subscribe!
     Thread handlerThread = new Thread(new Runnable() {
       @Override
       public void run() {

@@ -85,7 +85,8 @@ public class PubTransmitter implements PubOnlyTunnel {
       throw new NoNatsConnectionException("No connection to the NATS server!");
     }
 
-    // Get Jetstream stream from the NATS server
+    // Get Jetstream stream from the NATS server (this will also automatically create the stream if
+    // not present on the server)
     StreamInfo streamInfo = StreamManager.getStreamInfo(connection, streamConfiguration,
         pubOnlyConfiguration.isAutomaticallyCreateStream());
 
