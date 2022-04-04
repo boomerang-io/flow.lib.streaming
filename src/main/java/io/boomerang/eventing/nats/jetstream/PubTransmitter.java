@@ -105,6 +105,8 @@ public class PubTransmitter implements PubOnlyTunnel {
 
     // Publish the message
     PublishAck publishAck = connection.jetStream().publish(natsMessage);
+    
+    //test
 
     logger.debug("Message published to the stream! " + publishAck);
   }
