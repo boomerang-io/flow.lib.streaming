@@ -1,0 +1,161 @@
+package io.boomerang.eventing.nats.jetstream;
+
+import java.lang.ref.Reference;
+import java.time.Duration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import io.boomerang.eventing.nats.ConnectionPrimer;
+import io.boomerang.eventing.nats.jetstream.exception.MisconfigurationException;
+import io.nats.client.Connection;
+import io.nats.client.JetStreamSubscription;
+import io.nats.client.Message;
+import io.nats.client.PullSubscribeOptions;
+import io.nats.client.api.ConsumerConfiguration;
+import io.nats.client.api.StreamConfiguration;
+
+/**
+ * Pull-based subscribe receiver class is responsible for managing connection and various properties
+ * for the NATS Jetstream {@code Stream} and {@code Consumer}. It can subscribe and listen for new
+ * messages from a NATS Jetstream pull-based {@code Consumer}.
+ * 
+ * @since 0.3.0
+ * 
+ * @note NATS Jetstream {@code Stream} will be automatically created if {@code PubSubConfiguration}
+ *       {@link PubSubConfiguration#isAutomaticallyCreateStream isAutomaticallyCreateStream()}
+ *       property is set to {@code true}. Otherwise, {@link PubSubTransceiver} will try to find the
+ *       NATS Jetstream {@code Stream} by stream configuration's {@link StreamConfiguration#getName
+ *       name}.
+ * @note NATS Jetstream {@code Consumer} will be automatically created if
+ *       {@code PubSubConfiguration} {@link PubSubConfiguration#isAutomaticallyCreateConsumer
+ *       isAutomaticallyCreateConsumer()} property is set to {@code true}. Otherwise,
+ *       {@link PubSubTransceiver} will try to find the NATS Jetstream {@code Consumer} by consumer
+ *       configuration's {@link ConsumerConfiguration#getDurable() durable} name.
+ */
+class PullBasedSubReceiver extends SubReceiver {
+
+  public final Integer CONSUMER_PULL_BATCH_SIZE = 50;
+
+  public final Duration CONSUMER_PULL_BATCH_FIRST_MESSAGE_WAIT = Duration.ofSeconds(30);
+
+  private static final Logger logger = LogManager.getLogger(PullBasedSubReceiver.class);
+
+  private JetStreamSubscription jetstreamSubscription;
+
+  private Thread pullSubscriptionThread = null;
+
+  /**
+   * Create a new {@link PullBasedSubReceiver} object.
+   * 
+   * @param connectionPrimer Connection primer object.
+   * @param streamConfiguration NATS Jetstream {@code Stream} configuration.
+   * @param consumerConfiguration NATS Jetstream {@code Consumer} configuration.
+   * @param pubSubConfiguration {@link PubSubConfiguration} object.
+   * @since 0.3.0
+   */
+  PullBasedSubReceiver(ConnectionPrimer connectionPrimer, StreamConfiguration streamConfiguration,
+      ConsumerConfiguration consumerConfiguration, PubSubConfiguration pubSubConfiguration) {
+    super(connectionPrimer, streamConfiguration, consumerConfiguration, pubSubConfiguration);
+
+    ConsumerType consumerType = ConsumerManager.getConsumerType(consumerConfiguration);
+
+    if (consumerType != ConsumerType.PullBased) {
+      throw new MisconfigurationException(
+          "Pull-based receiver requires a configuration for a pull-based consumer. " + consumerType
+              + " was received instead.");
+    }
+  }
+
+  @Override
+  final protected void startConsumerSubscription(Connection connection,
+      Reference<SubHandler> subHandlerRef) throws Exception {
+
+    // Create pull subscription options and subscriber itself
+    PullSubscribeOptions options = PullSubscribeOptions.bind(streamConfiguration.getName(),
+        consumerConfiguration.getDurable());
+    jetstreamSubscription = connection.jetStream().subscribe(null, options);
+
+    // Define the subscriber class responsible for pulling and processing messages from the NATS
+    // server
+    class NatsPullBasedSubscriber implements Runnable {
+
+      private SubOnlyTunnel tunnel;
+
+      NatsPullBasedSubscriber(SubOnlyTunnel tunnel) {
+        this.tunnel = tunnel;
+      }
+
+      @Override
+      public void run() {
+        logger.debug("Handler thread for Jetstream pull-based consumer is running...");
+
+        // Loop until this thread is interrupted (under normal circumstances means unsubscription)
+        while (Thread.currentThread().isInterrupted() == false) {
+          try {
+            // Get new messages (if any, otherwise wait), then send it to the subscription
+            // handler
+            jetstreamSubscription
+                .iterate(CONSUMER_PULL_BATCH_SIZE, CONSUMER_PULL_BATCH_FIRST_MESSAGE_WAIT)
+                .forEachRemaining(this::processNewMessage);
+          } catch (IllegalStateException e) {
+            logger.error("An exception was raised when pulling new messages from the consumer!", e);
+            return;
+          }
+        }
+      }
+
+      void processNewMessage(Message message) {
+        logger.debug(
+            "Handler thread for Jetstream pull-based consumer received a new message: " + message);
+
+        if (message != null && subHandlerRef.get() != null) {
+          try {
+
+            // Notify subscription handler
+            subHandlerRef.get().newMessageReceived(tunnel, message.getSubject(),
+                new String(message.getData()));
+
+            // Acknowledge the message only after the handler was invoked
+            message.ack();
+
+          } catch (Exception e) {
+            logger.error("An exception was raised when subscription handler was invoked!", e);
+          }
+        } else {
+
+          // Subscription handler was deallocated
+          logger.error(
+              "No subscription handler assigned to this communication tunnel! Message not acknowledged!\n"
+                  + "Is the handler persisted with a strong reference?");
+        }
+      }
+    };
+
+    // Create and start the thread with the above defined subscriber
+    pullSubscriptionThread = new Thread(new NatsPullBasedSubscriber(this));
+    pullSubscriptionThread.start();
+
+    logger.debug("Successfully subscribed to NATS Jetstream consumer! " + jetstreamSubscription);
+  }
+
+  @Override
+  final protected void stopConsumerSubscription(Connection connection) {
+
+    try {
+      pullSubscriptionThread.interrupt();
+      pullSubscriptionThread = null;
+
+      jetstreamSubscription.unsubscribe();
+      jetstreamSubscription = null;
+    } catch (Exception e) {
+      logger.debug(
+          "An exception was raised when \"unsubscribe()\" method was invoked for\"jetstreamSubscription\": "
+              + e.getLocalizedMessage());
+    }
+  }
+
+  @Override
+  final public Boolean isSubscriptionActive() {
+    return super.isSubscribed() && jetstreamSubscription != null
+        && pullSubscriptionThread.isAlive();
+  }
+}

@@ -95,7 +95,7 @@ public class PubSubTransceiverTest {
     // Subscribe to a push-based consumer
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(new SubHandler() {
       @Override
-      public void newMessageReceived(PubSubTunnel tunnel, String subject, String message) {
+      public void newMessageReceived(SubOnlyTunnel tunnel, String subject, String message) {
         testMatch.set(testSubjects.stream().anyMatch((testSubject) -> subject.equals(testSubject))
             && testMessage.equals(message));
       }
@@ -136,7 +136,7 @@ public class PubSubTransceiverTest {
     // Subscribe to a pull-based consumer
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(new SubHandler() {
       @Override
-      public void newMessageReceived(PubSubTunnel tunnel, String subject, String message) {
+      public void newMessageReceived(SubOnlyTunnel tunnel, String subject, String message) {
         testMatch.set(testSubjects.stream().anyMatch((testSubject) -> subject.equals(testSubject))
             && testMessage.equals(message));
       }
@@ -184,7 +184,7 @@ public class PubSubTransceiverTest {
     // Subscribe to a push-based consumer
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(new SubHandler() {
       @Override
-      public void newMessageReceived(PubSubTunnel tunnel, String subject, String message) {
+      public void newMessageReceived(SubOnlyTunnel tunnel, String subject, String message) {
         IntStream.range(0, matches.size())
             .filter(idx -> messages.get(idx).getKey().equals(subject)
                 && messages.get(idx).getValue().equals(message))
@@ -233,7 +233,7 @@ public class PubSubTransceiverTest {
     // Subscribe to a pull-based consumer
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(new SubHandler() {
       @Override
-      public void newMessageReceived(PubSubTunnel tunnel, String subject, String message) {
+      public void newMessageReceived(SubOnlyTunnel tunnel, String subject, String message) {
         IntStream.range(0, matches.size())
             .filter(idx -> messages.get(idx).getKey().equals(subject)
                 && messages.get(idx).getValue().equals(message))
