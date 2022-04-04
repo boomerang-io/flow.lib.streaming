@@ -8,6 +8,7 @@ import io.boomerang.eventing.nats.ConnectionPrimer;
 import io.boomerang.eventing.nats.jetstream.exception.NoNatsConnectionException;
 import io.boomerang.eventing.nats.jetstream.exception.StreamNotFoundException;
 import io.boomerang.eventing.nats.jetstream.exception.SubjectMismatchException;
+import io.github.resilience4j.retry.RetryRegistry;
 import io.nats.client.Connection;
 import io.nats.client.JetStreamApiException;
 import io.nats.client.Message;
@@ -106,7 +107,12 @@ public class PubTransmitter implements PubOnlyTunnel {
     // Publish the message
     PublishAck publishAck = connection.jetStream().publish(natsMessage);
     
-    //test
+    // TODO
+    // If a cloud event fails to publish to the NATS server, temporarily store the event and
+    // attempt to re-send until successful
+    // Will need to create a queue in case there are multiple failed events
+    // Suggestion: try to implement RetryRegistry from resilience4j
+    RetryRegistry retryRegistry = RetryRegistry.ofDefaults();
 
     logger.debug("Message published to the stream! " + publishAck);
   }
