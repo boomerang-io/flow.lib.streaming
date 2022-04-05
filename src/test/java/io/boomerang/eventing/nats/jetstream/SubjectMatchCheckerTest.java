@@ -2,7 +2,6 @@ package io.boomerang.eventing.nats.jetstream;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import org.junit.jupiter.api.Test;
 
 /**
@@ -22,7 +21,8 @@ public class SubjectMatchCheckerTest {
     assertFalse(SubjectMatchChecker.doSubjectsMatch("flow", ""));
     assertFalse(SubjectMatchChecker.doSubjectsMatch("flow", "test"));
     assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.event", "flow.test"));
-    assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.event.test.lib", "flow.event.test.unknown"));
+    assertFalse(
+        SubjectMatchChecker.doSubjectsMatch("flow.event.test.lib", "flow.event.test.unknown"));
     assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.event.test.lib", "core.event.test.lib"));
   }
 
@@ -43,7 +43,8 @@ public class SubjectMatchCheckerTest {
     assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.event", "*.flow.event"));
     assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.event.one", "*.*.*.one"));
     assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.event", "flow.event.*"));
-    assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.event.test.lib", "flow.event.*.test.lib"));
+    assertFalse(
+        SubjectMatchChecker.doSubjectsMatch("flow.event.test.lib", "flow.event.*.test.lib"));
     assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.event.test.lib", "flow.*.*.*.oops"));
   }
 
@@ -53,10 +54,13 @@ public class SubjectMatchCheckerTest {
     assertTrue(SubjectMatchChecker.doSubjectsMatch("flow", ">"));
     assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test", "flow.>"));
     assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two", "flow.>"));
-    assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", "flow.>.five"));
+    assertTrue(
+        SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", "flow.>.five"));
     assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", ">.five"));
-    assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", "flow.>.>.five"));
-    assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", "flow.>.>.>.>.>.five"));
+    assertTrue(
+        SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", "flow.>.>.five"));
+    assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five",
+        "flow.>.>.>.>.>.five"));
 
     assertFalse(SubjectMatchChecker.doSubjectsMatch("", ">"));
     assertFalse(SubjectMatchChecker.doSubjectsMatch("flow", "flow.>"));
@@ -64,7 +68,8 @@ public class SubjectMatchCheckerTest {
     assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.five", "flow.>.five"));
     assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four", ">.five"));
     assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four", ">.three"));
-    assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four", "flow.>.>.>.>.>.five"));
+    assertFalse(
+        SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four", "flow.>.>.>.>.>.five"));
   }
 
   @Test
@@ -74,26 +79,42 @@ public class SubjectMatchCheckerTest {
     assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test.one", "flow.>.*"));
     assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two", "flow.>.*"));
     assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two", "flow.*.>"));
-    assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", "flow.>.*.>.five"));
-    assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", "flow.>.three.*.five"));
-    assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", ">.three.*.five"));
-    assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", "*.*.one.>.five"));
-    assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", "*.*.one.>"));
-    assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", ">.four.*"));
-    assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", ">.*.one.>.five"));
-    assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", "*.>.>.>.>.>.*"));
+    assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five",
+        "flow.>.*.>.five"));
+    assertTrue(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five",
+        "flow.>.three.*.five"));
+    assertTrue(
+        SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", ">.three.*.five"));
+    assertTrue(
+        SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", "*.*.one.>.five"));
+    assertTrue(
+        SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", "*.*.one.>"));
+    assertTrue(
+        SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", ">.four.*"));
+    assertTrue(
+        SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", ">.*.one.>.five"));
+    assertTrue(
+        SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", "*.>.>.>.>.>.*"));
 
     assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.test.one", "flow.*.one.>"));
     assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.test.one", "flow.>.test.*"));
     assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two", "test.>.*"));
     assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two", "test.*.>"));
-    assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", "flow.>.test.>.five"));
-    assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", "flow.>.*.three.five"));
-    assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", ">.two.*.five"));
-    assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", "*.*.two.>.five"));
-    assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", "*.*.test.>"));
-    assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", ">.three.*"));
-    assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", ">.*.four.>.five"));
-    assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", "*.*.>.>.>.>.>.*"));
+    assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five",
+        "flow.>.test.>.five"));
+    assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five",
+        "flow.>.*.three.five"));
+    assertFalse(
+        SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", ">.two.*.five"));
+    assertFalse(
+        SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", "*.*.two.>.five"));
+    assertFalse(
+        SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", "*.*.test.>"));
+    assertFalse(
+        SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five", ">.three.*"));
+    assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five",
+        ">.*.four.>.five"));
+    assertFalse(SubjectMatchChecker.doSubjectsMatch("flow.test.one.two.three.four.five",
+        "*.*.>.>.>.>.>.*"));
   }
 }
