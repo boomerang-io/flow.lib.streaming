@@ -160,10 +160,9 @@ public class SubHandlerAttributesTest {
     };
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
 
-    // Test subscribed and active subscription after a few seconds
-    TimeUnit.SECONDS.sleep(2);
-    assertTrue(pubSubTransceiver.isSubscribed());
-    assertTrue(pubSubTransceiver.isSubscriptionActive());
+    // Wait until the subscription is set and active
+    Awaitility.await().atMost(Duration.ofSeconds(4)).with().pollInterval(Duration.ofMillis(500))
+        .until(() -> pubSubTransceiver.isSubscribed() && pubSubTransceiver.isSubscriptionActive());
 
     // Stop the server and wait a few seconds
     natsServer.stop();
@@ -270,10 +269,9 @@ public class SubHandlerAttributesTest {
     };
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
 
-    // Test subscribed and active subscription after a few seconds
-    TimeUnit.SECONDS.sleep(2);
-    assertTrue(pubSubTransceiver.isSubscribed());
-    assertTrue(pubSubTransceiver.isSubscriptionActive());
+    // Wait until the subscription is set and active
+    Awaitility.await().atMost(Duration.ofSeconds(4)).with().pollInterval(Duration.ofMillis(500))
+        .until(() -> pubSubTransceiver.isSubscribed() && pubSubTransceiver.isSubscriptionActive());
 
     // Stop the server and wait a few seconds
     natsServer.stop();
