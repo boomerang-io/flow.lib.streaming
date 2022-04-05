@@ -76,15 +76,12 @@ public abstract class SubReceiver implements SubOnlyTunnel, ConnectionPrimerList
       throws AlreadySubscribedException, StreamNotFoundException, ConsumerNotFoundException {
 
     // Sanity check
-    if (isSubscribed()) {
+    if (subscribed.getAndSet(true)) {
       throw new AlreadySubscribedException("A subscription already exists!");
     }
 
-    // Mark as subscribed and assign the handler
-    subscribed.set(true);
+    // Assign the handler, get NATS connection and check if it is active
     subHandlerRef = new WeakReference<>(handler);
-
-    // Get NATS connection and check if it is active
     Connection connection = connectionPrimer.getActiveConnection();
 
     if (connection == null) {
