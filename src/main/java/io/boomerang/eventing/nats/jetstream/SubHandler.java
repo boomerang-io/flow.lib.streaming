@@ -16,9 +16,8 @@ public interface SubHandler {
    *        messages.
    * @since 0.3.0
    * @note The default implementation of this method does nothing.
-   * @note This method might be invoked multiple times if the connection to the NATS server drops
-   *       and then is re-established, however it also might be never invoked if a connection to the
-   *       NATS server was never established in the first place.
+   * @note This method will be invoked at most once after a subscription was request. Once invoked,
+   *       this means the subscription will stay active even if the NATS server goes offline.
    */
   public default void subscriptionSucceeded(SubOnlyTunnel tunnel) {}
 
