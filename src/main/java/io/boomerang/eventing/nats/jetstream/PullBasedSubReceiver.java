@@ -131,7 +131,7 @@ class PullBasedSubReceiver extends SubReceiver {
 
   @Override
   final public Boolean isSubscriptionActive() {
-    return super.isSubscribed() && jetstreamSubscription != null && jetstreamSubscription.isActive()
+    return super.isSubscribed() && jetstreamSubscription != null
         && pullSubscriptionThread.isAlive();
   }
 }

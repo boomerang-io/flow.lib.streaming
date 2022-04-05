@@ -97,7 +97,6 @@ class PushBasedSubReceiver extends SubReceiver {
 
   @Override
   public Boolean isSubscriptionActive() {
-    return super.isSubscribed() && jetstreamSubscription != null
-        && jetstreamSubscription.isActive();
+    return super.isSubscribed() && jetstreamSubscription != null && dispatcher != null;
   }
 }
