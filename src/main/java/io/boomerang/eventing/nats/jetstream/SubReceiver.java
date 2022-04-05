@@ -1,6 +1,5 @@
 package io.boomerang.eventing.nats.jetstream;
 
-import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.logging.log4j.LogManager;
@@ -10,7 +9,9 @@ import io.boomerang.eventing.nats.ConnectionPrimerListener;
 import io.boomerang.eventing.nats.jetstream.exception.AlreadySubscribedException;
 import io.boomerang.eventing.nats.jetstream.exception.ConsumerNotFoundException;
 import io.boomerang.eventing.nats.jetstream.exception.StreamNotFoundException;
+import io.boomerang.eventing.nats.jetstream.exception.SubHandlerReferenceClearedException;
 import io.nats.client.Connection;
+import io.nats.client.Message;
 import io.nats.client.api.ConsumerConfiguration;
 import io.nats.client.api.ConsumerInfo;
 import io.nats.client.api.StreamConfiguration;
@@ -139,7 +140,7 @@ public abstract class SubReceiver implements SubOnlyTunnel, ConnectionPrimerList
       }
 
       // Try to start the subscription and notify the handler if successful
-      startConsumerSubscription(connection, subHandlerRef);
+      startConsumerSubscription(connection);
       subHandlerRef.get().subscriptionSucceeded(this);
 
     } catch (Exception e) {
@@ -151,8 +152,40 @@ public abstract class SubReceiver implements SubOnlyTunnel, ConnectionPrimerList
     }
   }
 
-  protected abstract void startConsumerSubscription(Connection connection,
-      Reference<SubHandler> subHandlerRef) throws Exception;
+  /**
+   * This helper method is used by the subscription entities to process new incoming messages from
+   * the NATS server.
+   */
+  protected void processNewMessage(Message message) {
+    logger.debug(
+        "Handler thread for Jetstream pull-based consumer received a new message: " + message);
+
+    // Check the subscription handler first
+    if (subHandlerRef.get() == null) {
+
+      // Subscription handler has been cleared - unsubscribe
+      unsubscribe();
+      logger.error(new SubHandlerReferenceClearedException(
+          "No subscription handler assigned to this communication tunnel! "
+              + "Message not acknowledged and the subscription was cancelled! "
+              + "Is the handler persisted with a strong reference?"));
+      return;
+    }
+
+    try {
+      // Notify subscription handler
+      subHandlerRef.get().newMessageReceived(this, message.getSubject(),
+          new String(message.getData()));
+
+      // Acknowledge the message only after the handler was invoked and no exceptions were raised
+      message.ack();
+
+    } catch (Exception e) {
+      logger.error("An exception was raised when subscription handler was invoked!", e);
+    }
+  }
+
+  protected abstract void startConsumerSubscription(Connection connection) throws Exception;
 
   protected abstract void stopConsumerSubscription(Connection connection);
 }

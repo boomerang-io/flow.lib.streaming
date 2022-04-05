@@ -1,12 +1,14 @@
 package io.boomerang.eventing.nats.jetstream;
 
-import java.lang.ref.Reference;
+import java.io.IOException;
 import java.time.Duration;
+import java.util.function.Consumer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.boomerang.eventing.nats.ConnectionPrimer;
 import io.boomerang.eventing.nats.jetstream.exception.MisconfigurationException;
 import io.nats.client.Connection;
+import io.nats.client.JetStreamApiException;
 import io.nats.client.JetStreamSubscription;
 import io.nats.client.Message;
 import io.nats.client.PullSubscribeOptions;
@@ -66,8 +68,8 @@ class PullBasedSubReceiver extends SubReceiver {
   }
 
   @Override
-  final protected void startConsumerSubscription(Connection connection,
-      Reference<SubHandler> subHandlerRef) throws Exception {
+  final protected void startConsumerSubscription(Connection connection)
+      throws IOException, JetStreamApiException {
 
     // Create pull subscription options and subscriber itself
     PullSubscribeOptions options = PullSubscribeOptions.bind(streamConfiguration.getName(),
@@ -78,10 +80,10 @@ class PullBasedSubReceiver extends SubReceiver {
     // server
     class NatsPullBasedSubscriber implements Runnable {
 
-      private SubOnlyTunnel tunnel;
+      private Consumer<Message> consumer;
 
-      NatsPullBasedSubscriber(SubOnlyTunnel tunnel) {
-        this.tunnel = tunnel;
+      NatsPullBasedSubscriber(Consumer<Message> consumer) {
+        this.consumer = consumer;
       }
 
       @Override
@@ -95,43 +97,17 @@ class PullBasedSubReceiver extends SubReceiver {
             // handler
             jetstreamSubscription
                 .iterate(CONSUMER_PULL_BATCH_SIZE, CONSUMER_PULL_BATCH_FIRST_MESSAGE_WAIT)
-                .forEachRemaining(this::processNewMessage);
+                .forEachRemaining(consumer);
           } catch (IllegalStateException e) {
             logger.error("An exception was raised when pulling new messages from the consumer!", e);
             return;
           }
         }
       }
-
-      void processNewMessage(Message message) {
-        logger.debug(
-            "Handler thread for Jetstream pull-based consumer received a new message: " + message);
-
-        if (message != null && subHandlerRef.get() != null) {
-          try {
-
-            // Notify subscription handler
-            subHandlerRef.get().newMessageReceived(tunnel, message.getSubject(),
-                new String(message.getData()));
-
-            // Acknowledge the message only after the handler was invoked
-            message.ack();
-
-          } catch (Exception e) {
-            logger.error("An exception was raised when subscription handler was invoked!", e);
-          }
-        } else {
-
-          // Subscription handler was deallocated
-          logger.error(
-              "No subscription handler assigned to this communication tunnel! Message not acknowledged!\n"
-                  + "Is the handler persisted with a strong reference?");
-        }
-      }
     };
 
     // Create and start the thread with the above defined subscriber
-    pullSubscriptionThread = new Thread(new NatsPullBasedSubscriber(this));
+    pullSubscriptionThread = new Thread(new NatsPullBasedSubscriber(this::processNewMessage));
     pullSubscriptionThread.start();
 
     logger.debug("Successfully subscribed to NATS Jetstream consumer! " + jetstreamSubscription);
@@ -155,7 +131,7 @@ class PullBasedSubReceiver extends SubReceiver {
 
   @Override
   final public Boolean isSubscriptionActive() {
-    return super.isSubscribed() && jetstreamSubscription != null
+    return super.isSubscribed() && jetstreamSubscription != null && jetstreamSubscription.isActive()
         && pullSubscriptionThread.isAlive();
   }
 }

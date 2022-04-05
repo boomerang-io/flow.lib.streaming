@@ -1,7 +1,6 @@
 package io.boomerang.eventing.nats.jetstream;
 
 import java.io.IOException;
-import java.lang.ref.Reference;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.boomerang.eventing.nats.ConnectionPrimer;
@@ -10,7 +9,6 @@ import io.nats.client.Connection;
 import io.nats.client.Dispatcher;
 import io.nats.client.JetStreamApiException;
 import io.nats.client.JetStreamSubscription;
-import io.nats.client.MessageHandler;
 import io.nats.client.PushSubscribeOptions;
 import io.nats.client.api.ConsumerConfiguration;
 import io.nats.client.api.StreamConfiguration;
@@ -64,30 +62,9 @@ class PushBasedSubReceiver extends SubReceiver {
   }
 
   @Override
-  final protected void startConsumerSubscription(Connection connection,
-      Reference<SubHandler> subHandlerRef) throws IOException, JetStreamApiException {
+  final protected void startConsumerSubscription(Connection connection)
+      throws IOException, JetStreamApiException {
 
-    // Create the message handler
-    MessageHandler handler = (message) -> {
-      logger.debug(
-          "Handler thread for Jetstream push-based consumer received a new message: " + message);
-
-      if (message != null && subHandlerRef.get() != null) {
-
-        // Acknowledge the message first (prevent slow consumers)
-        message.ack();
-
-        // Notify subscription handler
-        subHandlerRef.get().newMessageReceived(this, message.getSubject(),
-            new String(message.getData()));
-
-      } else {
-
-        // This should not happen!!!
-        logger.error(
-            "No subscription handler assigned to this communication tunnel! Message not acknowledged!");
-      }
-    };
     // Create a dispatcher without a default handler and the push subscription
     // options
     dispatcher = connection.createDispatcher();
@@ -96,7 +73,7 @@ class PushBasedSubReceiver extends SubReceiver {
 
     // Subscribe to receive messages on subject and return this subscription
     jetstreamSubscription =
-        connection.jetStream().subscribe(null, dispatcher, handler, false, options);
+        connection.jetStream().subscribe(null, dispatcher, this::processNewMessage, false, options);
 
     logger.debug("Successfully subscribed to NATS Jetstream consumer! " + jetstreamSubscription);
   }
@@ -120,6 +97,7 @@ class PushBasedSubReceiver extends SubReceiver {
 
   @Override
   public Boolean isSubscriptionActive() {
-    return super.isSubscribed() && jetstreamSubscription != null && jetstreamSubscription.isActive();
+    return super.isSubscribed() && jetstreamSubscription != null
+        && jetstreamSubscription.isActive();
   }
 }
