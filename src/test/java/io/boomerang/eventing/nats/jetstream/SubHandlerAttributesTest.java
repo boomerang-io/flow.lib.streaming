@@ -160,7 +160,8 @@ public class SubHandlerAttributesTest {
     };
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
 
-    // Test subscribed and active subscription
+    // Test subscribed and active subscription after a few seconds
+    TimeUnit.SECONDS.sleep(2);
     assertTrue(pubSubTransceiver.isSubscribed());
     assertTrue(pubSubTransceiver.isSubscriptionActive());
 
@@ -269,7 +270,8 @@ public class SubHandlerAttributesTest {
     };
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
 
-    // Test subscribed and active subscription
+    // Test subscribed and active subscription after a few seconds
+    TimeUnit.SECONDS.sleep(2);
     assertTrue(pubSubTransceiver.isSubscribed());
     assertTrue(pubSubTransceiver.isSubscriptionActive());
 
