@@ -48,7 +48,7 @@ public class PushBasedSubReceiver extends SubReceiver {
    * @param pubSubConfiguration {@link PubSubConfiguration} object.
    * @since 0.3.0
    */
-  PushBasedSubReceiver(ConnectionPrimer connectionPrimer, StreamConfiguration streamConfiguration,
+  public PushBasedSubReceiver(ConnectionPrimer connectionPrimer, StreamConfiguration streamConfiguration,
       ConsumerConfiguration consumerConfiguration, PubSubConfiguration pubSubConfiguration) {
     super(connectionPrimer, streamConfiguration, consumerConfiguration, pubSubConfiguration);
 

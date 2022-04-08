@@ -54,7 +54,7 @@ public class PullBasedSubReceiver extends SubReceiver {
    * @param pubSubConfiguration {@link PubSubConfiguration} object.
    * @since 0.3.0
    */
-  PullBasedSubReceiver(ConnectionPrimer connectionPrimer, StreamConfiguration streamConfiguration,
+  public PullBasedSubReceiver(ConnectionPrimer connectionPrimer, StreamConfiguration streamConfiguration,
       ConsumerConfiguration consumerConfiguration, PubSubConfiguration pubSubConfiguration) {
     super(connectionPrimer, streamConfiguration, consumerConfiguration, pubSubConfiguration);
 
