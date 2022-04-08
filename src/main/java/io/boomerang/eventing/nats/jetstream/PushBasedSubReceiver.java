@@ -31,7 +31,7 @@ import io.nats.client.api.StreamConfiguration;
  *       {@link PubSubTransceiver} will try to find the NATS Jetstream {@code Consumer} by consumer
  *       configuration's {@link ConsumerConfiguration#getDurable() durable} name.
  */
-class PushBasedSubReceiver extends SubReceiver {
+public class PushBasedSubReceiver extends SubReceiver {
 
   private static final Logger logger = LogManager.getLogger(PushBasedSubReceiver.class);
 

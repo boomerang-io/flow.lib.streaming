@@ -33,7 +33,7 @@ import io.nats.client.api.StreamConfiguration;
  *       {@link PubSubTransceiver} will try to find the NATS Jetstream {@code Consumer} by consumer
  *       configuration's {@link ConsumerConfiguration#getDurable() durable} name.
  */
-class PullBasedSubReceiver extends SubReceiver {
+public class PullBasedSubReceiver extends SubReceiver {
 
   public final Integer CONSUMER_PULL_BATCH_SIZE = 50;
 
