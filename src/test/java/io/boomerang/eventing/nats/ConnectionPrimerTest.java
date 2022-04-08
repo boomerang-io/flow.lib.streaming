@@ -14,6 +14,7 @@ import java.util.Comparator;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
@@ -29,6 +30,10 @@ import io.nats.client.Options;
  * Unit test for Connection Primer.
  */
 public class ConnectionPrimerTest {
+
+  private final Duration WAIT_DURATION = Duration.ofSeconds(8);
+
+  private final Duration POLL_DURATION = Duration.ofMillis(500);
 
   private final Integer SERVER_PORT = ThreadLocalRandom.current().nextInt(29170, 29998 + 1);
 
@@ -66,7 +71,7 @@ public class ConnectionPrimerTest {
     natsServer.start();
 
     final ConnectionPrimer connectionPrimer = new ConnectionPrimer(serverUrl);
-    Awaitility.await().atMost(Duration.ofSeconds(5)).with().pollInterval(Duration.ofMillis(500))
+    Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(() -> Objects.nonNull(connectionPrimer.getActiveConnection()));
     Boolean connected = Objects.nonNull(connectionPrimer.getActiveConnection());
 
@@ -77,16 +82,16 @@ public class ConnectionPrimerTest {
 
   @Test
   public void testConnectBeforeServerStarted() throws Exception {
-    final ConnectionPrimer connectionPrimer = new ConnectionPrimer(
-        new Options.Builder().server(serverUrl).reconnectWait(Duration.ofMillis(500)));
+    final ConnectionPrimer connectionPrimer =
+        new ConnectionPrimer(new Options.Builder().server(serverUrl).reconnectWait(POLL_DURATION));
 
-    Thread.sleep(1000);
+    TimeUnit.SECONDS.sleep(WAIT_DURATION.toSeconds());
 
     assertTrue(Objects.isNull(connectionPrimer.getActiveConnection()));
 
     natsServer.start();
 
-    Awaitility.await().atMost(Duration.ofSeconds(2)).with().pollInterval(Duration.ofMillis(500))
+    Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(() -> Objects.nonNull(connectionPrimer.getActiveConnection()));
     Boolean connected = Objects.nonNull(connectionPrimer.getActiveConnection());
 
@@ -98,9 +103,9 @@ public class ConnectionPrimerTest {
   @Test
   public void testNeverConnected() throws InterruptedException {
     final ConnectionPrimer connectionPrimer = new ConnectionPrimer(
-        new Options.Builder().server(serverUrl).reconnectWait(Duration.ofMillis(500)));
+        new Options.Builder().server(serverUrl).reconnectWait(POLL_DURATION));
 
-    Thread.sleep(1000);
+    TimeUnit.SECONDS.sleep(WAIT_DURATION.toSeconds());
 
     assertTrue(Objects.isNull(connectionPrimer.getActiveConnection()));
     assertDoesNotThrow(() -> connectionPrimer.close());
@@ -112,7 +117,7 @@ public class ConnectionPrimerTest {
     final AtomicInteger fails = new AtomicInteger();
 
     final ConnectionPrimer connectionPrimer = new ConnectionPrimer(
-        new Options.Builder().server(serverUrl).reconnectWait(Duration.ofMillis(500)));
+        new Options.Builder().server(serverUrl).reconnectWait(POLL_DURATION));
     final ConnectionPrimerListener listener = new ConnectionPrimerListener() {
       @Override
       public void connectionUpdated(ConnectionPrimer connectionPrimer) {
@@ -122,16 +127,16 @@ public class ConnectionPrimerTest {
       }
     };
     connectionPrimer.addListener(listener);
-    Thread.sleep(3000);
+    TimeUnit.SECONDS.sleep(WAIT_DURATION.toSeconds());
     connectionPrimer.removeListener(listener);
 
     natsServer.start();
 
-    Thread.sleep(3000);
+    TimeUnit.SECONDS.sleep(WAIT_DURATION.toSeconds());
     serverIsOnline.set(true);
     connectionPrimer.addListener(listener);
 
-    Thread.sleep(3000);
+    TimeUnit.SECONDS.sleep(WAIT_DURATION.toSeconds());
 
     assertEquals(0, fails.get());
     assertDoesNotThrow(() -> connectionPrimer.close());

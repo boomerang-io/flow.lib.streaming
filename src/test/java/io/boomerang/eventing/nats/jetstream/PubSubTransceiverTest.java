@@ -40,6 +40,10 @@ import io.nats.client.api.StreamConfiguration;
 @Execution(ExecutionMode.CONCURRENT)
 public class PubSubTransceiverTest {
 
+  private final Duration WAIT_DURATION = Duration.ofSeconds(8);
+
+  private final Duration POLL_DURATION = Duration.ofMillis(500);
+
   private final Integer SERVER_PORT = ThreadLocalRandom.current().nextInt(29170, 29998 + 1);
 
   private final String serverUrl =
@@ -105,7 +109,7 @@ public class PubSubTransceiverTest {
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
 
     // Wait until the subscription has received the published message
-    Awaitility.await().atMost(Duration.ofSeconds(4)).with().pollInterval(Duration.ofMillis(500))
+    Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(testMatch::get);
 
     assertDoesNotThrow(() -> connectionPrimer.close());
@@ -145,7 +149,7 @@ public class PubSubTransceiverTest {
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
 
     // Wait until the subscription has received the published message
-    Awaitility.await().atMost(Duration.ofSeconds(4)).with().pollInterval(Duration.ofMillis(500))
+    Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(testMatch::get);
 
     assertDoesNotThrow(() -> connectionPrimer.close());
@@ -194,7 +198,7 @@ public class PubSubTransceiverTest {
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
 
     // Wait until the subscription has received all the published message
-    Awaitility.await().atMost(Duration.ofSeconds(8)).with().pollInterval(Duration.ofMillis(500))
+    Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(() -> matches.stream().allMatch(Boolean::valueOf));
 
     assertDoesNotThrow(() -> connectionPrimer.close());
@@ -242,7 +246,7 @@ public class PubSubTransceiverTest {
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
 
     // Wait until the subscription has received all the published message
-    Awaitility.await().atMost(Duration.ofSeconds(8)).with().pollInterval(Duration.ofMillis(500))
+    Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(() -> matches.stream().allMatch(Boolean::valueOf));
 
     assertDoesNotThrow(() -> connectionPrimer.close());
@@ -289,7 +293,7 @@ public class PubSubTransceiverTest {
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
 
     // Wait until the subscription has received the published message
-    Awaitility.await().atMost(Duration.ofSeconds(4)).with().pollInterval(Duration.ofMillis(500))
+    Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(() -> testMatches.get() == 1);
 
     // Unsubscribe, send another message and wait a few seconds
@@ -297,7 +301,7 @@ public class PubSubTransceiverTest {
     assertDoesNotThrow(() -> pubSubTransceiver.publish(
         testSubjects.get(ThreadLocalRandom.current().nextInt(0, testSubjects.size())),
         testMessageNotSubscribed));
-    TimeUnit.SECONDS.sleep(2);
+    TimeUnit.SECONDS.sleep(WAIT_DURATION.toSeconds());
 
     // The matches count still must be one
     assertTrue(testMatches.get() == 1);
@@ -345,7 +349,7 @@ public class PubSubTransceiverTest {
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
 
     // Wait until the subscription has received the published message
-    Awaitility.await().atMost(Duration.ofSeconds(4)).with().pollInterval(Duration.ofMillis(500))
+    Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(() -> testMatches.get() == 1);
 
     // Unsubscribe, send another message and wait a few seconds
@@ -353,7 +357,7 @@ public class PubSubTransceiverTest {
     assertDoesNotThrow(() -> pubSubTransceiver.publish(
         testSubjects.get(ThreadLocalRandom.current().nextInt(0, testSubjects.size())),
         testMessageNotSubscribed));
-    TimeUnit.SECONDS.sleep(2);
+    TimeUnit.SECONDS.sleep(WAIT_DURATION.toSeconds());
 
     // The matches count still must be one
     assertTrue(testMatches.get() == 1);

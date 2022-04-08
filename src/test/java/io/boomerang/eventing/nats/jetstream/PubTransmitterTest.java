@@ -12,6 +12,7 @@ import java.time.Duration;
 import java.util.Comparator;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +30,10 @@ import io.nats.client.api.StreamConfiguration;
  * Unit test for Publish Transmitter.
  */
 public class PubTransmitterTest {
+
+  private final Duration WAIT_DURATION = Duration.ofSeconds(8);
+
+  private final Duration POLL_DURATION = Duration.ofMillis(500);
 
   private final Integer SERVER_PORT = ThreadLocalRandom.current().nextInt(29170, 29998 + 1);
 
@@ -104,8 +109,8 @@ public class PubTransmitterTest {
 
   @Test
   void testServerConnection() throws Exception {
-    final ConnectionPrimer connectionPrimer = new ConnectionPrimer(
-        new Options.Builder().server(serverUrl).reconnectWait(Duration.ofMillis(500)));
+    final ConnectionPrimer connectionPrimer =
+        new ConnectionPrimer(new Options.Builder().server(serverUrl).reconnectWait(POLL_DURATION));
 
     PubTransmitter pubTransmitter = new PubTransmitter(connectionPrimer,
         new StreamConfiguration.Builder().name("test").subjects("test").build(),
@@ -115,7 +120,7 @@ public class PubTransmitterTest {
         () -> pubTransmitter.publish("test", "Test message!"));
 
     natsServer.start();
-    Thread.sleep(2000);
+    TimeUnit.SECONDS.sleep(WAIT_DURATION.toSeconds());
 
     assertDoesNotThrow(() -> pubTransmitter.publish("test", "Test message!"));
 

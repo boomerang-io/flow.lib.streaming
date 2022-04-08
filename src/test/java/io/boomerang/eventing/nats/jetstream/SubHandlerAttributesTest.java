@@ -33,6 +33,10 @@ import io.nats.client.api.StreamConfiguration;
 @Execution(ExecutionMode.CONCURRENT)
 public class SubHandlerAttributesTest {
 
+  private final Duration WAIT_DURATION = Duration.ofSeconds(8);
+
+  private final Duration POLL_DURATION = Duration.ofMillis(500);
+
   private final Integer SERVER_PORT = ThreadLocalRandom.current().nextInt(29170, 29998 + 1);
 
   private final String serverUrl =
@@ -129,7 +133,7 @@ public class SubHandlerAttributesTest {
     natsServer.start();
 
     // Wait until the subscription became active
-    Awaitility.await().atMost(Duration.ofSeconds(30)).with().pollInterval(Duration.ofMillis(500))
+    Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(pubSubTransceiver::isSubscriptionActive);
 
     assertDoesNotThrow(() -> connectionPrimer.close());
@@ -161,12 +165,12 @@ public class SubHandlerAttributesTest {
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
 
     // Wait until the subscription is set and active
-    Awaitility.await().atMost(Duration.ofSeconds(4)).with().pollInterval(Duration.ofMillis(500))
+    Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(() -> pubSubTransceiver.isSubscribed() && pubSubTransceiver.isSubscriptionActive());
 
     // Stop the server and wait a few seconds
     natsServer.stop();
-    TimeUnit.SECONDS.sleep(2);
+    TimeUnit.SECONDS.sleep(WAIT_DURATION.toSeconds());
 
     // Test that it is subscribed and has an active subscription for push-based consumers, which
     // have the subscription always active after subscribed to the consumer for at least once
@@ -239,7 +243,7 @@ public class SubHandlerAttributesTest {
     natsServer.start();
 
     // Wait until the subscription became active
-    Awaitility.await().atMost(Duration.ofSeconds(30)).with().pollInterval(Duration.ofMillis(500))
+    Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(pubSubTransceiver::isSubscriptionActive);
 
     assertDoesNotThrow(() -> connectionPrimer.close());
@@ -270,12 +274,12 @@ public class SubHandlerAttributesTest {
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
 
     // Wait until the subscription is set and active
-    Awaitility.await().atMost(Duration.ofSeconds(4)).with().pollInterval(Duration.ofMillis(500))
+    Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(() -> pubSubTransceiver.isSubscribed() && pubSubTransceiver.isSubscriptionActive());
 
     // Stop the server and wait a few seconds
     natsServer.stop();
-    TimeUnit.SECONDS.sleep(2);
+    TimeUnit.SECONDS.sleep(WAIT_DURATION.toSeconds());
 
     // Test that it is subscribed and has an active subscription for pull-based consumers, which
     // have the subscription always active after subscribed to the consumer for at least once

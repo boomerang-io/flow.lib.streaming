@@ -33,6 +33,10 @@ import io.nats.client.api.StreamConfiguration;
 @Execution(ExecutionMode.CONCURRENT)
 public class SubHandlerTest {
 
+  private final Duration WAIT_DURATION = Duration.ofSeconds(8);
+
+  private final Duration POLL_DURATION = Duration.ofMillis(500);
+
   private final Integer SERVER_PORT = ThreadLocalRandom.current().nextInt(29170, 29998 + 1);
 
   private final String serverUrl =
@@ -96,7 +100,7 @@ public class SubHandlerTest {
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
 
     // Wait until the subscription has received subscription succeeded notification
-    Awaitility.await().atMost(Duration.ofSeconds(4)).with().pollInterval(Duration.ofMillis(500))
+    Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(testMatch::get);
 
     assertTrue(testMatch.get());
@@ -135,11 +139,11 @@ public class SubHandlerTest {
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
 
     // Wait a few seconds and start the server
-    TimeUnit.SECONDS.sleep(5);
+    TimeUnit.SECONDS.sleep(WAIT_DURATION.toSeconds());
     natsServer.start();
 
     // Wait until the subscription has received subscription succeeded notification
-    Awaitility.await().atMost(Duration.ofSeconds(30)).with().pollInterval(Duration.ofMillis(500))
+    Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(testMatch::get);
 
     assertTrue(testMatch.get());
@@ -180,7 +184,7 @@ public class SubHandlerTest {
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
 
     // Wait until the subscription has received subscription succeeded notification
-    Awaitility.await().atMost(Duration.ofSeconds(30)).with().pollInterval(Duration.ofMillis(500))
+    Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(testMatch::get);
 
     assertTrue(testMatch.get());
@@ -219,11 +223,11 @@ public class SubHandlerTest {
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
 
     // Wait a few seconds and start the server
-    TimeUnit.SECONDS.sleep(5);
+    TimeUnit.SECONDS.sleep(WAIT_DURATION.toSeconds());
     natsServer.start();
 
     // Wait until the subscription has received subscription succeeded notification
-    Awaitility.await().atMost(Duration.ofSeconds(30)).with().pollInterval(Duration.ofMillis(500))
+    Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(testMatch::get);
 
     assertTrue(testMatch.get());
@@ -263,7 +267,7 @@ public class SubHandlerTest {
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
 
     // Wait until the subscription has received subscription succeeded notification
-    Awaitility.await().atMost(Duration.ofSeconds(4)).with().pollInterval(Duration.ofMillis(500))
+    Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(testMatch::get);
 
     assertTrue(testMatch.get());
@@ -301,11 +305,11 @@ public class SubHandlerTest {
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
 
     // Wait a few seconds and start the server
-    TimeUnit.SECONDS.sleep(5);
+    TimeUnit.SECONDS.sleep(WAIT_DURATION.toSeconds());
     natsServer.start();
 
     // Wait until the subscription has received subscription succeeded notification
-    Awaitility.await().atMost(Duration.ofSeconds(30)).with().pollInterval(Duration.ofMillis(500))
+    Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(testMatch::get);
 
     assertTrue(testMatch.get());
@@ -345,7 +349,7 @@ public class SubHandlerTest {
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
 
     // Wait until the subscription has received subscription succeeded notification
-    Awaitility.await().atMost(Duration.ofSeconds(30)).with().pollInterval(Duration.ofMillis(500))
+    Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(testMatch::get);
 
     assertTrue(testMatch.get());
@@ -383,11 +387,11 @@ public class SubHandlerTest {
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
 
     // Wait a few seconds and start the server
-    TimeUnit.SECONDS.sleep(5);
+    TimeUnit.SECONDS.sleep(WAIT_DURATION.toSeconds());
     natsServer.start();
 
     // Wait until the subscription has received subscription succeeded notification
-    Awaitility.await().atMost(Duration.ofSeconds(30)).with().pollInterval(Duration.ofMillis(500))
+    Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(testMatch::get);
 
     assertTrue(testMatch.get());
