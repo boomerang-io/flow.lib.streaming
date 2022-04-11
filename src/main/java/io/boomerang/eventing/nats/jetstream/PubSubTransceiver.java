@@ -158,7 +158,6 @@ public class PubSubTransceiver extends PubTransmitter
     // subscribe again
     Connection connection = connectionPrimer.getActiveConnection();
 
-    // maybe do something like this instead of Retry?
     if (isSubscribed() && !isSubscriptionActive() && connection != null) {
       logger.debug("Try to subscribe again: " + connectionPrimer);
       startConsumerSubscription(connection);
