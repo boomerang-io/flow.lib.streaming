@@ -108,13 +108,13 @@ public class PubTransmitter implements PubOnlyTunnel {
 
     // Get Jetstream stream from the NATS server (this will also automatically create the stream if
     // not present on the server)
-      StreamInfo streamInfo = StreamManager.getStreamInfo(connection, streamConfiguration,
-          pubOnlyConfiguration.isAutomaticallyCreateStream());
+    StreamInfo streamInfo = StreamManager.getStreamInfo(connection, streamConfiguration,
+        pubOnlyConfiguration.isAutomaticallyCreateStream());
 
-      if (streamInfo == null) {
-        throw new StreamNotFoundException("Stream could not be found! Consider enabling "
-            + "`automaticallyCreateStream` in `PubOnlyConfiguration`");
-      }
+    if (streamInfo == null) {
+      throw new StreamNotFoundException("Stream could not be found! Consider enabling "
+          + "`automaticallyCreateStream` in `PubOnlyConfiguration`");
+    }
 
     // Create the NATS message
     // @formatter:off
