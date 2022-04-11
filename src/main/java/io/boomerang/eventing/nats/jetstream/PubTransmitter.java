@@ -3,7 +3,6 @@ package io.boomerang.eventing.nats.jetstream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.function.Supplier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.boomerang.eventing.nats.ConnectionPrimer;
@@ -20,7 +19,6 @@ import io.nats.client.api.PublishAck;
 import io.nats.client.api.StreamConfiguration;
 import io.nats.client.api.StreamInfo;
 import io.nats.client.impl.NatsMessage;
-import io.vavr.CheckedFunction0;
 
 /**
  * Publish-only transmitter class is responsible for managing connection and various properties for
@@ -84,22 +82,39 @@ public class PubTransmitter implements PubOnlyTunnel {
           "Subject \"" + subject + "\" does not match any subjects of the stream!");
     }
 
+    // Set up Retry instance for failed NATS connection
+    RetryConfig config = RetryConfig.custom().retryExceptions(NullPointerException.class)
+        .waitDuration(Duration.ofMillis(1000)).build();
+    RetryRegistry registry = RetryRegistry.of(config);
+    Retry retry = registry.retry("retryConnect", config);
+
     // Get NATS connection
     Connection connection = connectionPrimer.getActiveConnection();
 
-    if (connection == null) {
-      throw new NoNatsConnectionException("No connection to the NATS server!");
+    while (true) {
+      if (connection == null) {
+        try {
+          connection = retry.executeSupplier(this.connectionPrimer::getActiveConnection);
+        } catch (NullPointerException npe) {
+          throw new NoNatsConnectionException("No connection to the NATS server!");
+        }
+      }
+
+      if (connection != null) {
+        System.out.println("Connected!");
+        break;
+      }
     }
 
     // Get Jetstream stream from the NATS server (this will also automatically create the stream if
     // not present on the server)
-    StreamInfo streamInfo = StreamManager.getStreamInfo(connection, streamConfiguration,
-        pubOnlyConfiguration.isAutomaticallyCreateStream());
+      StreamInfo streamInfo = StreamManager.getStreamInfo(connection, streamConfiguration,
+          pubOnlyConfiguration.isAutomaticallyCreateStream());
 
-    if (streamInfo == null) {
-      throw new StreamNotFoundException("Stream could not be found! Consider enabling "
-          + "`automaticallyCreateStream` in `PubOnlyConfiguration`");
-    }
+      if (streamInfo == null) {
+        throw new StreamNotFoundException("Stream could not be found! Consider enabling "
+            + "`automaticallyCreateStream` in `PubOnlyConfiguration`");
+      }
 
     // Create the NATS message
     // @formatter:off
@@ -110,47 +125,9 @@ public class PubTransmitter implements PubOnlyTunnel {
     // @formatter:on
 
     // Publish the message
-//    PublishAck publishAck = connection.jetStream().publish(natsMessage);
-    
-    // If a cloud event fails to publish to the NATS server, temporarily store the event and
-    // attempt to re-send until successful
-    // Will need to create a queue in case there are multiple failed events
-    // Suggestion: try to implement RetryRegistry from resilience4j
-    
-    RetryConfig config = RetryConfig.custom().retryExceptions(IOException.class)
-        .waitDuration(Duration.ofMillis(30000)).build();
-    // Create RetryRegistry using custom RetryConfig
-    RetryRegistry registry = RetryRegistry.of(config);
-    // Create a retry from the registry
-    Retry retry = registry.retry("retryPublish", config);
+    PublishAck publishAck = connection.jetStream().publish(natsMessage);
 
-    /* Method 1 */
-//    Supplier<PublishAck> publishAck = () -> {
-//      try {
-//        return connection.jetStream().publish(natsMessage);
-//      } catch (IOException e) {
-//        logger.debug("Failed to connect to NATS server");
-//      } catch (JetStreamApiException e) {
-//        logger.debug("Data related error");
-//      }
-//      return null;
-//    };
-//
-//    Supplier<PublishAck> retryingPublish = Retry.decorateSupplier(retry, publishAck);
-//    
-//    logger.debug("Message published to the stream! " + retryingPublish.get());
-    
-    /* Method 2 */
-    CheckedFunction0<PublishAck> retryingPublish =
-        Retry.decorateCheckedSupplier(retry, () -> connection.jetStream().publish(natsMessage));
-    
-    try {
-      retryingPublish.apply();
-      logger.debug("Message published to the stream! " + retryingPublish.apply());
-    } catch (Throwable throwable) {
-      // handle exception
-    }
-
-
+    System.out.println("Message \"" + message + "\" with subject \"" + subject + "\" published to stream: " + publishAck);
+    logger.debug("Message published to the stream! " + publishAck);
   }
 }
