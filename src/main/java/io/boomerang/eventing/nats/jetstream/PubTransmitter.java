@@ -2,16 +2,13 @@ package io.boomerang.eventing.nats.jetstream;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.boomerang.eventing.nats.ConnectionPrimer;
+import io.boomerang.eventing.nats.ConnectionPrimerListener;
 import io.boomerang.eventing.nats.jetstream.exception.NoNatsConnectionException;
 import io.boomerang.eventing.nats.jetstream.exception.StreamNotFoundException;
 import io.boomerang.eventing.nats.jetstream.exception.SubjectMismatchException;
-import io.github.resilience4j.retry.Retry;
-import io.github.resilience4j.retry.RetryConfig;
-import io.github.resilience4j.retry.RetryRegistry;
 import io.nats.client.Connection;
 import io.nats.client.JetStreamApiException;
 import io.nats.client.Message;
@@ -32,7 +29,7 @@ import io.nats.client.impl.NatsMessage;
  *       NATS Jetstream {@code Stream} by stream configuration's {@link StreamConfiguration#getName
  *       name}.
  */
-public class PubTransmitter implements PubOnlyTunnel {
+public class PubTransmitter implements PubOnlyTunnel, ConnectionPrimerListener {
 
   private static final Logger logger = LogManager.getLogger(PubTransmitter.class);
 
@@ -67,6 +64,7 @@ public class PubTransmitter implements PubOnlyTunnel {
     this.connectionPrimer = connectionPrimer;
     this.streamConfiguration = streamConfiguration;
     this.pubOnlyConfiguration = pubOnlyConfiguration;
+    this.connectionPrimer.addListener(this);
   }
 
   @Override
@@ -83,31 +81,36 @@ public class PubTransmitter implements PubOnlyTunnel {
     }
 
     // Set up Retry instance for failed NATS connection
-    RetryConfig config = RetryConfig.custom().retryExceptions(NullPointerException.class)
-        .waitDuration(Duration.ofMillis(1000)).build();
-    RetryRegistry registry = RetryRegistry.of(config);
-    Retry retry = registry.retry("retryConnect", config);
+//    RetryConfig config = RetryConfig.custom().retryExceptions(NullPointerException.class)
+//        .waitDuration(Duration.ofMillis(1000)).build();
+//    RetryRegistry registry = RetryRegistry.of(config);
+//    Retry retry = registry.retry("retryConnect", config);
 
     // Get NATS connection
     Connection connection = connectionPrimer.getActiveConnection();
 
-    while (true) {
-      if (connection == null) {
-        try {
-          connection = retry.executeSupplier(this.connectionPrimer::getActiveConnection);
-        } catch (NullPointerException npe) {
-          throw new NoNatsConnectionException("No connection to the NATS server!");
-        }
-      }
-
-      if (connection != null) {
-        System.out.println("Connected!");
-        break;
-      }
+    if (connection == null) {
+      throw new NoNatsConnectionException("No connection to the NATS server!");
     }
+
+//    while (true) {
+//      if (connection == null) {
+//        try {
+//          connection = retry.executeSupplier(this.connectionPrimer::getActiveConnection);
+//        } catch (NullPointerException npe) {
+//          throw new NoNatsConnectionException("No connection to the NATS server!");
+//        }
+//      }
+//
+//      if (connection != null) {
+//        System.out.println("Connected!");
+//        break;
+//      }
+//    }
 
     // Get Jetstream stream from the NATS server (this will also automatically create the stream if
     // not present on the server)
+    // wrap this in try/catch, if connection fails at this point store message
     StreamInfo streamInfo = StreamManager.getStreamInfo(connection, streamConfiguration,
         pubOnlyConfiguration.isAutomaticallyCreateStream());
 
@@ -126,8 +129,19 @@ public class PubTransmitter implements PubOnlyTunnel {
 
     // Publish the message
     PublishAck publishAck = connection.jetStream().publish(natsMessage);
+    // verify if message is published
+    // store message if publish fails, list of messages
 
-    System.out.println("Message \"" + message + "\" with subject \"" + subject + "\" published to stream: " + publishAck);
     logger.debug("Message published to the stream! " + publishAck);
+  }
+
+  @Override
+  public void connectionUpdated(ConnectionPrimer connectionPrimer) {
+    System.out.println("* * * * * Connection has been updated * * * * *");
+    if (connectionPrimer.getActiveConnection() != null) {
+      System.out.println("* * * Connection active");
+      // check for stream
+      // retry all failed messages
+    }
   }
 }
