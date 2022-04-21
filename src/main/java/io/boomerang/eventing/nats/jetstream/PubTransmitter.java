@@ -84,6 +84,7 @@ public class PubTransmitter implements PubOnlyTunnel, ConnectionPrimerListener {
           "Subject \"" + subject + "\" does not match any subjects of the stream!");
     }
 
+    // Get NATS connection
     Connection connection = connectionPrimer.getActiveConnection();
     try {
       // Get Jetstream stream from the NATS server (this will also automatically create the stream
