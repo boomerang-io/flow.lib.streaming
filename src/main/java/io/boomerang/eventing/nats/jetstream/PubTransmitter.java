@@ -9,7 +9,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.boomerang.eventing.nats.ConnectionPrimer;
 import io.boomerang.eventing.nats.ConnectionPrimerListener;
-import io.boomerang.eventing.nats.jetstream.exception.NoNatsConnectionException;
 import io.boomerang.eventing.nats.jetstream.exception.StreamNotFoundException;
 import io.boomerang.eventing.nats.jetstream.exception.SubjectMismatchException;
 import io.nats.client.Connection;
@@ -42,7 +41,7 @@ public class PubTransmitter implements PubOnlyTunnel, ConnectionPrimerListener {
 
   private final PubOnlyConfiguration pubOnlyConfiguration;
 
-  private ConcurrentLinkedQueue<Message> failedMessages = new ConcurrentLinkedQueue<Message>(); 
+  private ConcurrentLinkedQueue<Message> failedMessages = new ConcurrentLinkedQueue<>(); 
 
   /**
    * Create a new {@link PubTransmitter} object with default configuration properties.
@@ -72,6 +71,7 @@ public class PubTransmitter implements PubOnlyTunnel, ConnectionPrimerListener {
     this.connectionPrimer.addListener(this);
   }
 
+  // TODO remove all System.out.printlns after testing
   @Override
   public void publish(String subject, String message)
       throws IOException, JetStreamApiException, StreamNotFoundException, SubjectMismatchException {
@@ -79,92 +79,61 @@ public class PubTransmitter implements PubOnlyTunnel, ConnectionPrimerListener {
     // Check if the subject matches stream's wildcard subject
     Boolean subjectMatches = streamConfiguration.getSubjects().stream()
         .anyMatch(wildcard -> SubjectMatchChecker.doSubjectsMatch(subject, wildcard));
-
-    if (!subjectMatches) {
+    if (Boolean.FALSE.equals(subjectMatches)) {
       throw new SubjectMismatchException(
           "Subject \"" + subject + "\" does not match any subjects of the stream!");
     }
 
-    // Get NATS connection
     Connection connection = connectionPrimer.getActiveConnection();
-    if (connection == null) {
-      storeMessage(subject, message);
-      throw new NoNatsConnectionException("No connection to the NATS server!");
-    }
-
-    // Get Jetstream stream from the NATS server (this will also automatically create the stream if
-    // not present on the server)
     try {
+      // Get Jetstream stream from the NATS server (this will also automatically create the stream
+      // if not present on the server)
       getJetStream(connection);
-    } catch (NullPointerException npe) {
-      storeMessage(subject, message);
+
+      // Create the NATS message
+      Message natsMessage = createNATSMessage(subject, message);
+
+      // Publish the message
+      PublishAck publishAck = connection.jetStream().publish(natsMessage);
+      
+      System.out.println("Message \"" + message + "\" with subject \"" + subject + "\" published to stream");
+      printObject(publishAck);
+      logger.debug("Message published to the stream! " + publishAck);
+    } catch (IOException | JetStreamApiException | NullPointerException e) {
+      System.out.println("Connection to NATS server failed, storing message to send later");
+      failedMessages.add(createNATSMessage(subject, message));
+      printObject(failedMessages);
     }
-
-    // Create the NATS message
-    Message natsMessage = createNATSMessage(subject, message);
-
-    // Publish the message
-    PublishAck publishAck = connection.jetStream().publish(natsMessage);
-
-    System.out.println("Message \"" + message + "\" with subject \"" + subject + "\" published to stream");
-    printObject(publishAck);
-    // logger.debug("Message published to the stream! " + publishAck);
+    
   }
 
   private void getJetStream(Connection connection) throws IOException, JetStreamApiException {
     StreamInfo streamInfo = StreamManager.getStreamInfo(connection, streamConfiguration,
         pubOnlyConfiguration.isAutomaticallyCreateStream());
-
     if (streamInfo == null) {
       throw new StreamNotFoundException("Stream could not be found! Consider enabling "
           + "`automaticallyCreateStream` in `PubOnlyConfiguration`");
     }
   }
 
-  // TODO replace this w one line where needed instead of a method call?
-  private void storeMessage(String subject, String message) {
-    System.out.println("Storing message to send later");
-    failedMessages.add(createNATSMessage(subject, message));
-    printObject(failedMessages);
-  }
-
-  // TODO replace this w one line where needed instead of a method call?
   private NatsMessage createNATSMessage(String subject, String message) {
     return NatsMessage.builder().subject(subject).data(message, StandardCharsets.UTF_8).build();
   }
 
   private void publishFailedMessages() {
-    // removed unnecessary arguments from this method
-    // convert failedMessages List<Message> -> ConcurrentLinkedQueue<Message>
-    // remove one message at a time after successful publish
-    // attempt actions inside synchronized while loop,
-    // break if queue is empty or if connection fails again
-    
     while (true) {
       synchronized (this) {
         try {
-          System.out.println("Resending failed message");
-          PublishAck publishAck =
-              connectionPrimer.getActiveConnection().jetStream().publish(failedMessages.peek());
-          System.out.println("PublishAck:");
-          printObject(publishAck);
-          if (publishAck != null) {
-            System.out.println("-------------------------------------------------");
-            System.out.println("Queue size before: " + failedMessages.size());
-            printObject(failedMessages);
-            
-            System.out.println("Removing published message");
-            failedMessages.poll();
-            
-            System.out.println("Queue size after: " + failedMessages.size());
-            printObject(failedMessages);
-            System.out.println("-------------------------------------------------");
-          }
+          // Retrieve and publish message at the head of the queue
+          connectionPrimer.getActiveConnection().jetStream().publish(failedMessages.peek());
+          // Remove message at the head of the queue
+          failedMessages.poll();
         } catch (IOException | JetStreamApiException e) {
           e.printStackTrace();
         }
 
-        if (failedMessages == null || connectionPrimer.getActiveConnection() == null) {
+        // Break from loop if queue is empty or connection is null
+        if (failedMessages.isEmpty() || connectionPrimer.getActiveConnection() == null) {
           break;
         }
       }
@@ -183,18 +152,16 @@ public class PubTransmitter implements PubOnlyTunnel, ConnectionPrimerListener {
 
   @Override
   public void connectionUpdated(ConnectionPrimer connectionPrimer) {
-    // TODO don't retry messages if failed stream
     Connection connection = connectionPrimer.getActiveConnection();
     if (connection != null) {
-      System.out.println("Connection active");
       try {
         getJetStream(connection);
-      } catch (Exception e) {
-        e.printStackTrace();
+      } catch (IOException | JetStreamApiException | StreamNotFoundException e) {
+        failedMessages.clear();
       }
-      publishFailedMessages();
-    } else {
-      System.out.println("Saving message(s) to send upon reconnection");
+      if (!failedMessages.isEmpty()) {
+        publishFailedMessages();
+      }
     }
   }
 }
