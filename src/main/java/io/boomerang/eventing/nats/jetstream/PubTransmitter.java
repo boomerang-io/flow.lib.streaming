@@ -74,7 +74,7 @@ public class PubTransmitter implements PubOnlyTunnel, ConnectionPrimerListener {
   // TODO remove all System.out.printlns after testing
   @Override
   public void publish(String subject, String message)
-      throws IOException, JetStreamApiException, StreamNotFoundException, SubjectMismatchException {
+      throws SubjectMismatchException {
 
     // Check if the subject matches stream's wildcard subject
     Boolean subjectMatches = streamConfiguration.getSubjects().stream()
@@ -84,37 +84,37 @@ public class PubTransmitter implements PubOnlyTunnel, ConnectionPrimerListener {
           "Subject \"" + subject + "\" does not match any subjects of the stream!");
     }
 
-    // Get NATS connection
     Connection connection = connectionPrimer.getActiveConnection();
-    try {
-      // Get Jetstream stream from the NATS server (this will also automatically create the stream
-      // if not present on the server)
-      getJetStream(connection);
 
-      // Create the NATS message
-      Message natsMessage = createNATSMessage(subject, message);
-
-      // Publish the message
-      PublishAck publishAck = connection.jetStream().publish(natsMessage);
-      
-      System.out.println("Message \"" + message + "\" with subject \"" + subject + "\" published to stream");
-      printObject(publishAck);
-      logger.debug("Message published to the stream! " + publishAck);
-    } catch (IOException | JetStreamApiException | NullPointerException e) {
-      System.out.println("Connection to NATS server failed, storing message to send later");
+    if (connection == null) {
+      // failed bc no connection, store message
+      System.out.println("Add failed message to stream");
       failedMessages.add(createNATSMessage(subject, message));
       printObject(failedMessages);
+    } else {
+      try {
+        Boolean automaticallyCreateStream = pubOnlyConfiguration.isAutomaticallyCreateStream();
+        StreamInfo streamInfo = StreamManager.getStreamInfo(connection, streamConfiguration,
+            automaticallyCreateStream);
+        if (streamInfo == null && Boolean.FALSE.equals(automaticallyCreateStream)) {
+          throw new StreamNotFoundException("Stream could not be found! Consider enabling "
+              + "`automaticallyCreateStream` in `PubOnlyConfiguration`");
+        }
+        PublishAck publishAck = connection.jetStream().publish(createNATSMessage(subject, message));
+        System.out.println("Publish!");
+        printObject(publishAck);
+        logger.debug("Message published to the stream! " + publishAck);
+      } catch (IOException e) {
+        // failed bc no connection, store message
+        System.out.println("Add failed message to stream");
+        failedMessages.add(createNATSMessage(subject, message));
+        printObject(failedMessages);
+      } catch (JetStreamApiException e) {
+        // failed bc something else, throw exception
+        e.printStackTrace();
+      }
     }
-    
-  }
 
-  private void getJetStream(Connection connection) throws IOException, JetStreamApiException {
-    StreamInfo streamInfo = StreamManager.getStreamInfo(connection, streamConfiguration,
-        pubOnlyConfiguration.isAutomaticallyCreateStream());
-    if (streamInfo == null) {
-      throw new StreamNotFoundException("Stream could not be found! Consider enabling "
-          + "`automaticallyCreateStream` in `PubOnlyConfiguration`");
-    }
   }
 
   private NatsMessage createNATSMessage(String subject, String message) {
@@ -122,20 +122,45 @@ public class PubTransmitter implements PubOnlyTunnel, ConnectionPrimerListener {
   }
 
   private void publishFailedMessages() {
+    // similar to initial publish logic, except:
+    // store message -> break
+    // throw exception -> fail silently and clear messages
+    Connection connection = connectionPrimer.getActiveConnection();
+
     while (true) {
       synchronized (this) {
-        try {
-          // Retrieve and publish message at the head of the queue
-          connectionPrimer.getActiveConnection().jetStream().publish(failedMessages.peek());
-          // Remove message at the head of the queue
-          failedMessages.poll();
-        } catch (IOException | JetStreamApiException e) {
-          e.printStackTrace();
-        }
-
-        // Break from loop if queue is empty or connection is null
-        if (failedMessages.isEmpty() || connectionPrimer.getActiveConnection() == null) {
+        if (connection == null || failedMessages.isEmpty()) {
+          // failed bc no connection or no more messages in queue, break
           break;
+        } else {
+          try {
+            Boolean automaticallyCreateStream = pubOnlyConfiguration.isAutomaticallyCreateStream();
+            StreamInfo streamInfo = StreamManager.getStreamInfo(connection, streamConfiguration,
+                automaticallyCreateStream);
+            if (streamInfo == null && Boolean.FALSE.equals(automaticallyCreateStream)) {
+              failedMessages.clear();
+            }
+            System.out.println("***********************");
+            System.out.println("queue before removing message:");
+            System.out.println(failedMessages);
+            System.out.println("***********************");
+            // publish failed message at head of queue
+            PublishAck publishAck = connection.jetStream().publish(failedMessages.peek());
+            System.out.println("Re publishing previously failed!");
+            printObject(publishAck);
+            // remove head of queue
+            failedMessages.poll();
+            System.out.println("***********************");
+            System.out.println("queue after removing message:");
+            System.out.println(failedMessages);
+            System.out.println("***********************");
+          } catch (IOException e) {
+            // failed bc no connection, break
+            break;
+          } catch (JetStreamApiException e) {
+            // failed bc something else, fail silently and clear messages
+            failedMessages.clear();
+          }
         }
       }
     }
@@ -155,14 +180,8 @@ public class PubTransmitter implements PubOnlyTunnel, ConnectionPrimerListener {
   public void connectionUpdated(ConnectionPrimer connectionPrimer) {
     Connection connection = connectionPrimer.getActiveConnection();
     if (connection != null) {
-      try {
-        getJetStream(connection);
-      } catch (IOException | JetStreamApiException | StreamNotFoundException e) {
-        failedMessages.clear();
-      }
-      if (!failedMessages.isEmpty()) {
-        publishFailedMessages();
-      }
+      System.out.println("republishing failed messages...");
+      publishFailedMessages();
     }
   }
 }
