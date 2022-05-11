@@ -97,7 +97,7 @@ public class PubTransmitter implements PubOnlyTunnel, ConnectionPrimerListener {
     Connection connection = connectionPrimer.getActiveConnection();
 
     if (connection == null) {
-      if (republishOnFail == true) {
+      if (Boolean.TRUE.equals(republishOnFail)) {
 
         // Failed because there is no active connection, store message
         logger.error("Could not publish the message due to connection issues!"
@@ -128,7 +128,7 @@ public class PubTransmitter implements PubOnlyTunnel, ConnectionPrimerListener {
         }
       } catch (IOException e) {
 
-        if (republishOnFail) {
+        if (Boolean.TRUE.equals(republishOnFail)) {
 
           // Failed because there is no active connection, store message
           logger.error("Could not publish the message due to connection issues!"
@@ -182,7 +182,7 @@ public class PubTransmitter implements PubOnlyTunnel, ConnectionPrimerListener {
       return;
     }
 
-    while (failedMessages.isEmpty() == false) {
+    while (!failedMessages.isEmpty()) {
 
       // Publish failed message at head of queue
       try {
@@ -198,7 +198,7 @@ public class PubTransmitter implements PubOnlyTunnel, ConnectionPrimerListener {
 
       } catch (IOException e) {
 
-        // Message publish failed due to connection issue, return form the method since there is
+        // Message publish failed due to connection issue, return from the method since there is
         // no reason to continue with publishing other messages
         logger.error("Could not publish the message due to connection issues!"
             + " Try to publish the message once connection is re-established.");
