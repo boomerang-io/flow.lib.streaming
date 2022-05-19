@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -90,6 +91,8 @@ public class RepublishFailedMessagesTest {
       }
     };
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
+    
+    TimeUnit.SECONDS.sleep(2);
 
     natsServer.start();
 
@@ -137,6 +140,8 @@ public class RepublishFailedMessagesTest {
       }
     };
     assertDoesNotThrow(() -> pubSubTransceiver.subscribe(subHandler));
+    
+    TimeUnit.SECONDS.sleep(2);
 
     natsServer.start();
 
