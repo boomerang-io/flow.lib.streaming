@@ -1,6 +1,7 @@
 package io.boomerang.eventing.nats.jetstream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -27,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import berlin.yuna.natsserver.config.NatsConfig;
 import berlin.yuna.natsserver.logic.Nats;
 import io.boomerang.eventing.nats.ConnectionPrimer;
+import io.boomerang.eventing.nats.jetstream.exception.FailedPublishMessageException;
 import io.nats.client.api.ConsumerConfiguration;
 import io.nats.client.api.StreamConfiguration;
 
@@ -148,6 +150,29 @@ public class RepublishFailedMessagesTest {
     // Check that the messages have been received after starting the server
     Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(() -> matches.stream().allMatch(Boolean::valueOf));
+
+    assertDoesNotThrow(() -> connectionPrimer.close());
+
+    natsServer.stop();
+  }
+  
+  @Test
+  void testRepublishFailedConnection() throws Exception {
+    final ConnectionPrimer connectionPrimer = new ConnectionPrimer(serverUrl);
+    PubSubTransceiver pubSubTransceiver = new PubSubTransceiver(connectionPrimer,
+        new StreamConfiguration.Builder().name("test").subjects("test").build(),
+        new ConsumerConfiguration.Builder().durable("test-consumer-pull").build(),
+        new PubSubConfiguration.Builder().automaticallyCreateStream(true)
+            .automaticallyCreateConsumer(true).build());
+
+    // Flag set to false and server offline, publish fails
+    assertThrows(FailedPublishMessageException.class,
+        () -> pubSubTransceiver.publish("test", "Test message!", false));
+
+    natsServer.start();
+    TimeUnit.SECONDS.sleep(2);
+
+    assertDoesNotThrow(() -> pubSubTransceiver.publish("test", "Test message!", false));
 
     assertDoesNotThrow(() -> connectionPrimer.close());
 
