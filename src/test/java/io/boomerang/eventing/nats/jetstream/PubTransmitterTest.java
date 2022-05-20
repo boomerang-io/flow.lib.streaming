@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 import berlin.yuna.natsserver.config.NatsConfig;
 import berlin.yuna.natsserver.logic.Nats;
 import io.boomerang.eventing.nats.ConnectionPrimer;
-import io.boomerang.eventing.nats.jetstream.exception.NoNatsConnectionException;
+import io.boomerang.eventing.nats.jetstream.exception.FailedPublishMessageException;
 import io.boomerang.eventing.nats.jetstream.exception.StreamNotFoundException;
 import io.boomerang.eventing.nats.jetstream.exception.SubjectMismatchException;
 import io.nats.client.Options;
@@ -116,7 +116,7 @@ public class PubTransmitterTest {
         new StreamConfiguration.Builder().name("test").subjects("test").build(),
         new PubOnlyConfiguration.Builder().automaticallyCreateStream(true).build());
 
-    assertThrows(NoNatsConnectionException.class,
+    assertThrows(FailedPublishMessageException.class,
         () -> pubTransmitter.publish("test", "Test message!"));
 
     natsServer.start();
