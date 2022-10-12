@@ -124,7 +124,7 @@ public class PullBasedSubReceiver extends SubReceiver {
       jetstreamSubscription = null;
     } catch (Exception e) {
       logger.debug(
-          "An exception was raised when \"unsubscribe()\" method was invoked for\"jetstreamSubscription\": "
+          "An exception was raised when \"unsubscribe()\" method was invoked for \"jetstreamSubscription\": "
               + e.getLocalizedMessage());
     }
   }
