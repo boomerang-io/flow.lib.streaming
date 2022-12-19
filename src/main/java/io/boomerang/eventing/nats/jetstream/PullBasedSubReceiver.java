@@ -100,7 +100,6 @@ public class PullBasedSubReceiver extends SubReceiver {
                 .forEachRemaining(consumer);
           } catch (IllegalStateException e) {
             logger.error("An exception was raised when pulling new messages from the consumer!", e);
-            return;
           }
         }
       }
