@@ -44,6 +44,7 @@ public class PullBasedSubReceiver extends SubReceiver {
   private JetStreamSubscription jetstreamSubscription;
 
   private Thread pullSubscriptionThread = null;
+  private boolean stopConsumerSub = false;
 
   /**
    * Create a new {@link PullBasedSubReceiver} object.
@@ -84,6 +85,7 @@ public class PullBasedSubReceiver extends SubReceiver {
 
       NatsPullBasedSubscriber(Consumer<Message> consumer) {
         this.consumer = consumer;
+        stopConsumerSub = false;
       }
 
       @Override
@@ -91,7 +93,9 @@ public class PullBasedSubReceiver extends SubReceiver {
         logger.debug("Handler thread for Jetstream pull-based consumer is running...");
 
         // Loop until this thread is interrupted (under normal circumstances means unsubscription)
-        while (Thread.currentThread().isInterrupted() == false) {
+        // stopConsumerSub is used to control the termination of the thread, even if the thread
+        // hangs and isInterrupted() does not return true, when stop is programmatically called
+        while (Thread.currentThread().isInterrupted() == false && !stopConsumerSub) {
           try {
             // Get new messages (if any, otherwise wait), then send it to the subscription
             // handler
@@ -116,6 +120,7 @@ public class PullBasedSubReceiver extends SubReceiver {
   final protected void stopConsumerSubscription(Connection connection) {
 
     try {
+      stopConsumerSub = true;
       pullSubscriptionThread.interrupt();
       pullSubscriptionThread = null;
 
