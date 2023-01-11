@@ -46,7 +46,6 @@ public class ConnectionPrimerTest extends BaseEventingTest {
     Boolean connected = Objects.nonNull(connectionPrimer.getActiveConnection());
 
     assertDoesNotThrow(() -> connectionPrimer.close());
-    natsServer.stop();
     assertTrue(connected);
   }
 
