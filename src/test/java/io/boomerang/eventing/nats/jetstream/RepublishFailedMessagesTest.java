@@ -2,31 +2,18 @@ package io.boomerang.eventing.nats.jetstream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.MessageFormat;
-import java.time.Duration;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.UUID;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import org.awaitility.Awaitility;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import berlin.yuna.natsserver.config.NatsConfig;
-import berlin.yuna.natsserver.logic.Nats;
+import io.boomerang.eventing.base.BaseEventingTest;
 import io.boomerang.eventing.nats.ConnectionPrimer;
 import io.boomerang.eventing.nats.jetstream.exception.FailedPublishMessageException;
 import io.nats.client.api.ConsumerConfiguration;
@@ -35,43 +22,8 @@ import io.nats.client.api.StreamConfiguration;
 /**
  * Unit test for Publish Transmitter with attempt to republish failed messages.
  */
-public class RepublishFailedMessagesTest {
+public class RepublishFailedMessagesTest extends BaseEventingTest {
 
-  private final Duration WAIT_DURATION = Duration.ofSeconds(8);
-
-  private final Duration POLL_DURATION = Duration.ofMillis(500);
-
-  private final Integer SERVER_PORT = ThreadLocalRandom.current().nextInt(29170, 29998 + 1);
-
-  private final String serverUrl =
-      MessageFormat.format("nats://localhost:{0,number,#}", SERVER_PORT);
-
-  private final String jetstreamStoreDir = System.getProperty("java.io.tmpdir") + UUID.randomUUID();
-
-  private Nats natsServer;
-
-  @BeforeEach
-  @SuppressWarnings("resource")
-  void setupNatsServer() {
-    // @formatter:off
-    natsServer = new Nats(SERVER_PORT)
-        .config(NatsConfig.JETSTREAM, "true")
-        .config(NatsConfig.STORE_DIR, jetstreamStoreDir);
-    // @formatter:on
-  }
-
-  @AfterEach
-  void cleanUpServer() {
-    natsServer.stop();
-
-    try (Stream<Path> walk = Files.walk(Paths.get(jetstreamStoreDir))) {
-      walk.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
-    } catch (IOException e) {
-      System.err
-          .println("Could not delete NATS Jetstream temporary directory: " + jetstreamStoreDir);
-    }
-  }
-  
   @Test
   void testRepublishFailedMessage() throws Exception {
     final ConnectionPrimer connectionPrimer = new ConnectionPrimer(serverUrl);
@@ -96,15 +48,13 @@ public class RepublishFailedMessagesTest {
     
     TimeUnit.SECONDS.sleep(2);
 
-    natsServer.start();
+    startNATSServer();
 
     // Check that the message has been received after starting the server
     Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(testMatch::get);
 
     assertDoesNotThrow(() -> connectionPrimer.close());
-
-    natsServer.stop();
   }
   
   @Test
@@ -145,15 +95,13 @@ public class RepublishFailedMessagesTest {
     
     TimeUnit.SECONDS.sleep(2);
 
-    natsServer.start();
+    startNATSServer();
 
     // Check that the messages have been received after starting the server
     Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(() -> matches.stream().allMatch(Boolean::valueOf));
 
     assertDoesNotThrow(() -> connectionPrimer.close());
-
-    natsServer.stop();
   }
   
   @Test
@@ -169,13 +117,11 @@ public class RepublishFailedMessagesTest {
     assertThrows(FailedPublishMessageException.class,
         () -> pubSubTransceiver.publish("test", "Test message!", false));
 
-    natsServer.start();
+    startNATSServer();
     TimeUnit.SECONDS.sleep(2);
 
     assertDoesNotThrow(() -> pubSubTransceiver.publish("test", "Test message!", false));
 
     assertDoesNotThrow(() -> connectionPrimer.close());
-
-    natsServer.stop();
   }
 }

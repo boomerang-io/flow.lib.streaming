@@ -3,26 +3,12 @@ package io.boomerang.eventing.nats.jetstream;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.MessageFormat;
-import java.time.Duration;
-import java.util.Comparator;
-import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 import org.awaitility.Awaitility;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
-import berlin.yuna.natsserver.config.NatsConfig;
-import berlin.yuna.natsserver.logic.Nats;
+import io.boomerang.eventing.base.BaseEventingTest;
 import io.boomerang.eventing.nats.ConnectionPrimer;
 import io.nats.client.api.ConsumerConfiguration;
 import io.nats.client.api.StreamConfiguration;
@@ -31,42 +17,7 @@ import io.nats.client.api.StreamConfiguration;
  * Unit test for Subscriber handler.
  */
 @Execution(ExecutionMode.CONCURRENT)
-public class SubHandlerAttributesTest {
-
-  private final Duration WAIT_DURATION = Duration.ofSeconds(8);
-
-  private final Duration POLL_DURATION = Duration.ofMillis(500);
-
-  private final Integer SERVER_PORT = ThreadLocalRandom.current().nextInt(29170, 29998 + 1);
-
-  private final String serverUrl =
-      MessageFormat.format("nats://localhost:{0,number,#}", SERVER_PORT);
-
-  private final String jetstreamStoreDir = System.getProperty("java.io.tmpdir") + UUID.randomUUID();
-
-  private Nats natsServer;
-
-  @BeforeEach
-  @SuppressWarnings("resource")
-  void setupNatsServer() {
-    // @formatter:off
-    natsServer = new Nats(SERVER_PORT)
-        .config(NatsConfig.JETSTREAM, "true")
-        .config(NatsConfig.STORE_DIR, jetstreamStoreDir);
-    // @formatter:on
-  }
-
-  @AfterEach
-  void cleanUpServer() {
-    natsServer.stop();
-
-    try (Stream<Path> walk = Files.walk(Paths.get(jetstreamStoreDir))) {
-      walk.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
-    } catch (IOException e) {
-      System.err
-          .println("Could not delete NATS Jetstream temporary directory: " + jetstreamStoreDir);
-    }
-  }
+public class SubHandlerAttributesTest extends BaseEventingTest {
 
   @Test
   void testPushSubHandlerIsSubscribed() throws Exception {
@@ -130,21 +81,20 @@ public class SubHandlerAttributesTest {
     assertFalse(pubSubTransceiver.isSubscriptionActive());
 
     // Start the server
-    natsServer.start();
+    startNATSServer();
 
     // Wait until the subscription became active
     Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(pubSubTransceiver::isSubscriptionActive);
 
     assertDoesNotThrow(() -> connectionPrimer.close());
-    natsServer.stop();
   }
 
   @Test
   void testPushSubHandlerSubscriptionAfterStop() throws Exception {
     String testSubject = "test69420";
 
-    natsServer.start();
+    startNATSServer();
 
     // Create connection and the transceiver object
     final ConnectionPrimer connectionPrimer = new ConnectionPrimer(serverUrl);
@@ -240,21 +190,20 @@ public class SubHandlerAttributesTest {
     assertFalse(pubSubTransceiver.isSubscriptionActive());
 
     // Start the server
-    natsServer.start();
+    startNATSServer();
 
     // Wait until the subscription became active
     Awaitility.await().atMost(WAIT_DURATION).with().pollInterval(POLL_DURATION)
         .until(pubSubTransceiver::isSubscriptionActive);
 
     assertDoesNotThrow(() -> connectionPrimer.close());
-    natsServer.stop();
   }
 
   @Test
   void testPullSubHandlerSubscriptionAfterStop() throws Exception {
     String testSubject = "test69420";
 
-    natsServer.start();
+    startNATSServer();
 
     // Create connection and the transceiver object
     final ConnectionPrimer connectionPrimer = new ConnectionPrimer(serverUrl);
