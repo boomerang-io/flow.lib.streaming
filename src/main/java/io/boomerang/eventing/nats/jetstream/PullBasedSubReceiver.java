@@ -9,6 +9,7 @@ import io.boomerang.eventing.nats.ConnectionPrimer;
 import io.boomerang.eventing.nats.jetstream.exception.MisconfigurationException;
 import io.nats.client.Connection;
 import io.nats.client.JetStreamApiException;
+import io.nats.client.JetStreamStatusException;
 import io.nats.client.JetStreamSubscription;
 import io.nats.client.Message;
 import io.nats.client.PullSubscribeOptions;
@@ -98,6 +99,11 @@ public class PullBasedSubReceiver extends SubReceiver {
             jetstreamSubscription
                 .iterate(CONSUMER_PULL_BATCH_SIZE, CONSUMER_PULL_BATCH_FIRST_MESSAGE_WAIT)
                 .forEachRemaining(consumer);
+          } catch (JetStreamStatusException jsse) {
+            // jnats throws an exception when receiving a status message with one of the following
+            // status codes: 404, 408.
+            logger.error("An exception was raised when pulling new messages from the consumer!",
+                jsse);
           } catch (IllegalStateException e) {
             logger.error("An exception was raised when pulling new messages from the consumer!", e);
             return;
