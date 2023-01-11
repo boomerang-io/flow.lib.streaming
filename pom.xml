@@ -5,7 +5,7 @@
 
 	<groupId>io.boomerang</groupId>
 	<artifactId>lib-eventing</artifactId>
-	<version>0.4.0</version>
+	<version>0.4.3</version>
 	<name>Boomerang Lib Eventing</name>
 	<url>https://github.com/boomerang-io/lib.eventing</url>
 
