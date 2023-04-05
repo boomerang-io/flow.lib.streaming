@@ -111,6 +111,7 @@ public class PullBasedSubReceiver extends SubReceiver {
                 jsse);
           } catch (IllegalStateException e) {
             logger.error("An exception was raised when pulling new messages from the consumer!", e);
+            return;
           }
         }
       }
